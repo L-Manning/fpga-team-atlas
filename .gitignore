@@ -1,0 +1,13 @@
+# Built page (CI builds and publishes it)
+public/
+
+# Per-person Obsidian state
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.trash/
+
+__pycache__/
+
+# Test screenshots (tests/page_smoke.py --shots)
+tests/shots/

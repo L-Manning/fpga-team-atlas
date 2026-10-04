@@ -1,0 +1,31 @@
+# Runs the kit's tests on GitHub. At work, .gitlab-ci.yml checks and publishes the atlas instead.
+name: tests
+on:
+  push:
+  pull_request:
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.8", "3.13"]     # the oldest Python the tools support, and a current one
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv python install ${{ matrix.python }}
+      - run: uv run --no-project --python ${{ matrix.python }} -- python -m unittest discover -s tests -t tests -v
+      - run: uv run --no-project --python ${{ matrix.python }} -- python tools/build_atlas.py --out public/index.html
+  page:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install playwright && python -m playwright install --with-deps chromium
+      - run: python tests/page_smoke.py --shots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: tests/shots/

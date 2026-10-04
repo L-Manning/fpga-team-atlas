@@ -1,0 +1,32 @@
+# FPGA Team Atlas: check the roadmap notes on every merge request and
+# publish the atlas from the default branch.
+#
+# The jobs need Python 3.8+ and nothing else. If your runners can't pull from
+# Docker Hub, point `image` at a Python image in your internal registry, or use
+# a shell runner with Python installed and delete the `image` line.
+
+stages: [check, publish]
+
+default:
+  image: python:3.12-slim
+
+check-roadmap:
+  stage: check
+  script:
+    - python3 tools/build_atlas.py --check
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Named "pages" so GitLab Pages serves public/ when Pages is enabled on your
+# instance. If it isn't, open public/index.html from the job's artifacts.
+pages:
+  stage: publish
+  script:
+    - python3 tools/build_atlas.py --out public/index.html
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

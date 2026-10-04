@@ -1,0 +1,2273 @@
+<title>FPGA Team Atlas</title>
+<style>
+/*__ATLAS_FONTS__*/
+/* Layout: an Admiralty-style chart of the team's work with four levels (chart, territory, walled town, task). Each level deeper tints the page in the workstream's colour; a numbered depth rail in the toolbar says where you are. */
+:root{
+  --sea:#e2ecee; --land:#efe5c7; --ink:#162031; --magenta:#a3186e; --ground:#edf1f0; --panel:#fbfcfb;
+  --shoal:#cbe0e8; --depth:#77a0b8; --ink-2:#465163; --muted:#687381; --line:#ccd5d6; --line-strong:#9eabb2;
+  --fog:#f3f6f5;
+  --wash-1:#f0e2b6; --wash-2:#dce7c3; --wash-3:#f1d8c6; --wash-4:#dddbea; --wash-5:#d3e5dc; --wash-6:#ece0cc;
+  --ws-1:#87640f; --ws-2:#56772b; --ws-3:#a9543a; --ws-4:#66589c; --ws-5:#2c7563; --ws-6:#8f6438;
+  --st-planned:#d4d1c4; --st-progress:#86b6ef; --st-review:#5598e7; --st-done:#256abf; --st-adopted:#104281;
+  --good:#1d7a39; --warn:#8f5d08; --bad:#b0392f;
+  --rock:#c3b8a2; --rock-2:#a69a82; --lava:#d4542c; --lit:#f0bc45; --street:#f8f4ea; --street-open:#ebe3cd; --wall:#8a7f6e; --tree:#9cb487; --tree-edge:#4d6340; --tree-hi:rgba(255,255,255,.4);
+  --hilite-a:.34;
+  --scrim:rgba(10,16,23,.48); --shadow:0 10px 30px rgba(22,32,49,.16);
+  --ws-ink:var(--ink); --ws-wash:var(--land);
+  --font-chart:"Spectral SC","Spectral",Georgia,"Times New Roman",serif;
+  --font-serif:"Spectral",Georgia,"Times New Roman",serif;
+  --font-ui:"Atkinson Hyperlegible Next","Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"Atkinson Hyperlegible Mono",ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --sea:#0c1923; --land:#2a2a20; --ink:#e1e7eb; --magenta:#e468b6; --ground:#0a1017; --panel:#121b24;
+    --shoal:#11283a; --depth:#3b6886; --ink-2:#b0bbc6; --muted:#8a95a2; --line:#24303c; --line-strong:#3d4b59;
+    --fog:#1a2630;
+    --wash-1:#302c1d; --wash-2:#243020; --wash-3:#34271f; --wash-4:#272838; --wash-5:#1e302a; --wash-6:#312a1f;
+    --ws-1:#d1a63c; --ws-2:#8fb75a; --ws-3:#e38c70; --ws-4:#a596e3; --ws-5:#5cb79f; --ws-6:#cd9b67;
+    --st-planned:#36414c; --st-progress:#1c5cab; --st-review:#2a78d6; --st-done:#5598e7; --st-adopted:#9ec5f4;
+    --good:#4cc46e; --warn:#e5a93a; --bad:#ec7b6f;
+    --rock:#4b453c; --rock-2:#6a6152; --lava:#ff7a45; --lit:#ffd36b; --street:#3d3d33; --street-open:#2c2d26; --wall:#6e675c; --tree:#3f5638; --tree-edge:#121a10; --tree-hi:rgba(190,222,168,.16);
+    --hilite-a:.1;
+    --scrim:rgba(0,0,0,.6); --shadow:0 12px 34px rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --sea:#0c1923; --land:#2a2a20; --ink:#e1e7eb; --magenta:#e468b6; --ground:#0a1017; --panel:#121b24;
+  --shoal:#11283a; --depth:#3b6886; --ink-2:#b0bbc6; --muted:#8a95a2; --line:#24303c; --line-strong:#3d4b59;
+  --fog:#1a2630;
+  --wash-1:#302c1d; --wash-2:#243020; --wash-3:#34271f; --wash-4:#272838; --wash-5:#1e302a; --wash-6:#312a1f;
+  --ws-1:#d1a63c; --ws-2:#8fb75a; --ws-3:#e38c70; --ws-4:#a596e3; --ws-5:#5cb79f; --ws-6:#cd9b67;
+  --st-planned:#36414c; --st-progress:#1c5cab; --st-review:#2a78d6; --st-done:#5598e7; --st-adopted:#9ec5f4;
+  --good:#4cc46e; --warn:#e5a93a; --bad:#ec7b6f;
+  --rock:#4b453c; --rock-2:#6a6152; --lava:#ff7a45; --lit:#ffd36b; --street:#3d3d33; --street-open:#2c2d26; --wall:#6e675c; --tree:#3f5638; --tree-edge:#121a10; --tree-hi:rgba(190,222,168,.16);
+  --hilite-a:.1;
+  --scrim:rgba(0,0,0,.6); --shadow:0 12px 34px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.5 var(--font-ui);-webkit-text-size-adjust:100%;transition:background-color .45s ease}
+body[data-ws="0"]{--ws-ink:var(--ws-1);--ws-wash:var(--wash-1)}
+body[data-ws="1"]{--ws-ink:var(--ws-2);--ws-wash:var(--wash-2)}
+body[data-ws="2"]{--ws-ink:var(--ws-3);--ws-wash:var(--wash-3)}
+body[data-ws="3"]{--ws-ink:var(--ws-4);--ws-wash:var(--wash-4)}
+body[data-ws="4"]{--ws-ink:var(--ws-5);--ws-wash:var(--wash-5)}
+body[data-ws="5"]{--ws-ink:var(--ws-6);--ws-wash:var(--wash-6)}
+@supports (background:color-mix(in srgb,red 50%,blue)){
+  body[data-depth="2"]{background:color-mix(in srgb,var(--ws-wash) 34%,var(--ground))}
+  body[data-depth="3"],body[data-depth="4"]{background:color-mix(in srgb,var(--ws-wash) 60%,var(--ground))}
+}
+[hidden]{display:none!important}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--magenta);outline-offset:2px}
+code,.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+
+/* toolbar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--panel);border-bottom:1px solid var(--line)}
+body[data-depth="2"] .top,body[data-depth="3"] .top,body[data-depth="4"] .top{border-bottom:2px solid var(--ws-ink)}
+.bar,.filters{max-width:1560px;margin:0 auto;padding-inline:16px;display:flex;flex-wrap:wrap;align-items:center}
+.bar{gap:8px 20px;padding-block:10px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.brand svg{width:28px;height:28px;flex:none}
+.brand b{font:600 20px/1 var(--font-chart);letter-spacing:.05em;white-space:nowrap}
+.tabs{display:flex;gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:8px;color:var(--ink-2);text-decoration:none;font-weight:600;font-size:14px;white-space:nowrap}
+.tab:hover{background:var(--ground);color:var(--ink)}
+.tab[aria-current="page"]{color:var(--ink);background:var(--ground);box-shadow:inset 0 -2px 0 var(--magenta)}
+.count{font:700 11.5px/1 var(--font-ui);padding:3px 6px;border-radius:999px;border:1px solid var(--line-strong);color:var(--ink-2);font-variant-numeric:tabular-nums}
+.count.warn{border-color:var(--warn);color:var(--warn)}
+.count.bad{border-color:var(--bad);color:var(--bad)}
+.tools{margin-left:auto;display:flex;align-items:center;gap:8px;min-width:0}
+.search{position:relative;min-width:0}
+.search input{width:min(270px,56vw);font-size:14px;padding:7px 10px 7px 32px;border-radius:9px;border:1px solid var(--line-strong);background:var(--ground)}
+.search>svg{position:absolute;left:10px;top:50%;width:15px;height:15px;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.results{position:absolute;right:0;top:calc(100% + 6px);width:min(380px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--line-strong);border-radius:12px;box-shadow:var(--shadow);padding:6px;z-index:40}
+.results button{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1px 10px;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:8px;cursor:pointer}
+.results button.on,.results button:hover{background:var(--ground)}
+.results .rid{font:12px/1.5 var(--font-mono);color:var(--muted);grid-row:span 2}
+.results .rt{font-weight:600}
+.results .rs{font-size:12.5px;color:var(--ink-2)}
+.results .none{padding:10px;color:var(--muted)}
+.icon-btn{width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:9px;border:1px solid var(--line-strong);background:var(--ground);cursor:pointer;font-weight:700;font-size:16px;line-height:1}
+.filters{gap:8px 18px;padding-block:8px;font-size:13.5px;color:var(--ink-2);border-top:1px solid var(--line)}
+.filters label{display:flex;align-items:center;gap:7px}
+select{background:var(--ground);border:1px solid var(--line-strong);border-radius:8px;padding:5px 8px;font-size:13.5px;max-width:100%;min-width:0;text-overflow:ellipsis}
+.filters label{max-width:100%;min-width:0}
+h1,h2,h3,.md,.lede,.note,.row .rn,.tlink .tt,.facts dd,.plan-title p,.rs,.rt{overflow-wrap:anywhere}
+[tabindex="-1"]:focus{outline:none}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:9px;overflow:hidden}
+.seg button{border:0;background:var(--ground);padding:5px 11px;cursor:pointer;font-size:13.5px;color:var(--ink-2)}
+.seg button+button{border-left:1px solid var(--line-strong)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+/* depth rail: the four levels of the map */
+.depth{margin-left:auto;display:flex;flex-wrap:wrap;align-items:center;gap:4px 2px;min-width:0;font-size:13px}
+.depth .step{display:inline-flex;align-items:center;gap:7px;padding:3px 10px 3px 3px;border-radius:999px;text-decoration:none;color:var(--ink-2);white-space:nowrap;min-width:0;max-width:min(260px,44vw);border:1px solid transparent}
+.depth .step i{font:700 11.5px/1 var(--font-ui);font-style:normal;width:21px;height:21px;border-radius:50%;display:grid;place-items:center;border:1.5px solid currentColor;flex:none}
+.depth .step span{overflow:hidden;text-overflow:ellipsis}
+.depth a.step:hover{color:var(--ink);border-color:var(--line-strong);background:var(--ground)}
+.depth .step.here{background:var(--ws-ink);color:var(--panel);font-weight:700}
+.depth .step.here i{border-color:var(--panel)}
+.depth .step.todo{color:var(--muted)}
+.depth .step.todo i{border-style:dashed}
+.depth .sep{color:var(--muted);padding:0 1px}
+main{max-width:1560px;margin:0 auto;padding-inline:16px;padding-block:16px 40px}
+
+/* chart */
+.map-scroll{overflow-x:auto;border-radius:14px;border:1px solid var(--line-strong);background:var(--sea)}
+.map-wrap{position:relative;width:100%;min-width:760px;aspect-ratio:16/10}
+.map-stage{position:absolute;inset:0;transform-origin:50% 50%;transition:transform .55s cubic-bezier(.35,0,.2,1),opacity .45s ease}
+.map-stage>canvas,.map-stage>svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+#hilite{pointer-events:none}
+#world.over-land{cursor:zoom-in}
+.key{display:flex;flex-wrap:wrap;gap:10px 26px;align-items:center;padding-top:12px;font-size:13px;color:var(--ink-2)}
+.key .k{display:inline-flex;align-items:center;gap:8px}
+.key svg{flex:none}
+.key-trk{fill:none;stroke:var(--ink);stroke-width:2;opacity:.7}
+.key-trk.open{stroke-dasharray:.5 7;stroke-width:3;stroke-linecap:round}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:14px;height:10px;border-radius:3px}
+.fogsw{width:24px;height:14px;border-radius:7px;background:var(--fog);border:1px solid var(--line-strong)}
+svg text{font-family:var(--font-ui)}
+.w-margin{fill:var(--panel)}
+.w-bars rect{fill:var(--ink)}
+.w-frame{fill:none;stroke:var(--ink);stroke-width:1.3}
+.w-grat{fill:none;stroke:var(--depth);stroke-width:1;opacity:.3}
+.region-label{font-family:var(--font-chart);font-weight:600;font-size:25px;letter-spacing:.2em;text-anchor:middle;cursor:zoom-in;paint-order:stroke;stroke:var(--halo,var(--land));stroke-width:6px;stroke-linejoin:round;stroke-opacity:.92}
+.region-label.on{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px}
+.region-label:focus{outline:none}
+.region-label:focus-visible{stroke:var(--magenta);stroke-opacity:1;stroke-width:2px}
+.road .trk{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;opacity:.62}
+.road.open .trk{stroke-dasharray:.5 7;stroke-width:3;opacity:.5}
+.road .chev{fill:none;stroke:var(--ink);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:.65}
+.road.ext{opacity:.6}
+.road.far{opacity:.18}
+.roads.focus .road{opacity:.14}
+.roads.focus .road.hl{opacity:1}
+.road.hl .trk,.road.hl .chev{stroke:var(--magenta);opacity:1}
+.town{cursor:pointer}
+#world .town{cursor:zoom-in}
+.town:focus{outline:none}
+.town .hit{fill:transparent}
+.town .disc{fill:var(--panel);stroke:var(--ink);stroke-width:1.4}
+.town .track{fill:none;stroke:var(--st-planned)}
+.town .seg{fill:none}
+.town .glyph{fill:var(--ink)}
+.town .door{fill:var(--panel)}
+.town:hover .disc,.town:focus-visible .disc{stroke:var(--magenta);stroke-width:3}
+.town:focus-visible .hit{stroke:var(--magenta);stroke-width:2;stroke-dasharray:4 4}
+.town.dim{opacity:.38}
+.town.unscoped .disc{stroke-dasharray:3 4}
+.c-label{font-family:var(--font-chart);font-weight:600;font-size:17px;fill:var(--ink);text-anchor:middle;paint-order:stroke;stroke:var(--halo,var(--land));stroke-width:4.5px;stroke-linejoin:round}
+.c-sub{font-size:12.5px;fill:var(--ink-2);text-anchor:middle;paint-order:stroke;stroke:var(--halo,var(--land));stroke-width:4px;stroke-linejoin:round;font-variant-numeric:tabular-nums}
+.c-fog{font-family:var(--font-serif);font-style:italic;font-size:14px;fill:var(--ink-2);text-anchor:middle;paint-order:stroke;stroke:var(--fog);stroke-width:4px;stroke-linejoin:round}
+.fog circle{fill:var(--fog)}
+.fog{opacity:.94}
+.seg-in-progress{stroke:var(--st-progress)} .seg-review{stroke:var(--st-review)} .seg-done{stroke:var(--st-done)} .seg-adopted{stroke:var(--st-adopted)}
+.bg-planned{background:var(--st-planned)} .bg-in-progress{background:var(--st-progress)} .bg-review{background:var(--st-review)} .bg-done{background:var(--st-done)} .bg-adopted{background:var(--st-adopted)}
+.fl-planned{fill:var(--st-planned)} .fl-in-progress{fill:var(--st-progress)} .fl-review{fill:var(--st-review)} .fl-done{fill:var(--st-done)} .fl-adopted{fill:var(--st-adopted)}
+.rose *{fill:none;stroke:var(--magenta)}
+.rose .star{fill:var(--magenta);stroke:none;opacity:.9}
+.rose .hub{fill:var(--panel)}
+.rose text{fill:var(--magenta);stroke:none;font-family:var(--font-chart);font-weight:600;font-size:18px;text-anchor:middle}
+.cart .box{fill:var(--panel);stroke:var(--ink);stroke-width:1.3}
+.cart .inner{fill:none;stroke:var(--ink);stroke-width:.8}
+.cart .t1{font-family:var(--font-chart);font-weight:600;font-size:22px;letter-spacing:.12em;fill:var(--ink);text-anchor:middle}
+.cart .t2{font-family:var(--font-serif);font-style:italic;font-size:15px;fill:var(--ink-2);text-anchor:middle}
+.cart .t3{font-size:12px;fill:var(--muted);text-anchor:middle;font-variant-numeric:tabular-nums}
+
+/* things in the sea */
+.egg{cursor:help}
+.egg-hit{fill:transparent}
+.egg .cone{fill:var(--rock-2);stroke:var(--ink);stroke-width:1.2;stroke-linejoin:round}
+.egg .cone-sh{fill:var(--ink);opacity:.16}
+.egg .hach{fill:none;stroke:var(--ink);stroke-width:.9;stroke-linecap:round;opacity:.55}
+.egg .crater{fill:var(--lava);stroke:var(--ink);stroke-width:.8}
+.egg .lava{fill:none;stroke:var(--lava);stroke-width:2.2;stroke-linecap:round}
+.egg .sound{font-family:var(--font-serif);font-style:italic;font-size:11.5px;fill:var(--depth);text-anchor:middle;font-variant-numeric:tabular-nums}
+.egg .elabel{font-family:var(--font-serif);font-style:italic;font-size:14px;fill:var(--ink-2);text-anchor:middle;paint-order:stroke;stroke:var(--sea);stroke-width:4px;stroke-linejoin:round}
+.egg .sp-out{fill:none;stroke:var(--ink);stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+.egg .sp-body{fill:none;stroke:var(--depth);stroke-width:6.2;stroke-linecap:round;stroke-linejoin:round}
+.egg .sp-head{fill:var(--depth);stroke:var(--ink);stroke-width:1.3;stroke-linejoin:round}
+.egg .sp-eye{fill:var(--ink)}
+.egg .sp-fin{fill:var(--depth);stroke:var(--ink);stroke-width:1.1;stroke-linejoin:round}
+.egg .sp-sea{fill:var(--sea)}
+.egg .waves{fill:none;stroke:var(--depth);stroke-width:1.5;stroke-linecap:round}
+.bob{animation:bob 4.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-2.5px)}}
+.smoke circle{fill:var(--muted);opacity:0;transform-box:fill-box;transform-origin:center;animation:puff 3.3s ease-out infinite}
+.smoke circle:nth-child(2){animation-delay:1.1s}
+.smoke circle:nth-child(3){animation-delay:2.2s}
+@keyframes puff{0%{opacity:0;transform:translate(0,0) scale(.5)}18%{opacity:.6}100%{opacity:0;transform:translate(6px,-20px) scale(1.6)}}
+
+/* territory view */
+.view-region .plan-head{margin-bottom:14px}
+.region-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(290px,350px);gap:16px;align-items:start}
+.region-body .map-scroll{border-color:var(--ws-ink);border-width:1.5px}
+#rsvg .c-label.lg{font-size:19px}
+#rsvg .c-label.sm{font-size:14px;stroke:var(--sea);stroke-opacity:.85}
+#rsvg .c-sub{font-size:13px}
+.ghost{opacity:.72}
+.ghost:hover,.ghost:focus-visible{opacity:.95}
+.r-title{font-family:var(--font-chart);font-weight:600;font-size:27px;letter-spacing:.2em;text-anchor:middle;paint-order:stroke;stroke:var(--halo,var(--land));stroke-width:6px;stroke-linejoin:round}
+.r-edge{cursor:pointer}
+.r-edge:focus{outline:none}
+.r-edge text{font-family:var(--font-serif);font-style:italic;font-size:15px;fill:var(--ink-2);paint-order:stroke;stroke:var(--sea);stroke-width:5px;stroke-linejoin:round}
+.r-edge path{fill:var(--ink-2)}
+.r-edge:hover text,.r-edge:focus-visible text{fill:var(--magenta)}
+.r-edge:hover path,.r-edge:focus-visible path{fill:var(--magenta)}
+.pulse{fill:none;stroke:var(--magenta);stroke-width:3;transform-box:fill-box;transform-origin:center;animation:pulse 1.25s ease-out 2 both}
+@keyframes pulse{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(2.2)}}
+.mb{cursor:pointer}
+.mb:focus{outline:none}
+.mb .mb-hit{fill:transparent}
+.mb:hover .mb-hit,.mb:focus-visible .mb-hit{fill:var(--panel);stroke:var(--magenta);stroke-width:2}
+.mb.out{opacity:.3}
+.mb .hs-wall,.mb .hs-roof,.mb .hs-chim{stroke-width:2}
+.mb .hs-plan{stroke-width:2.1;stroke-dasharray:6 4}
+.mb .hs-stake{stroke-width:2.4}
+.mb .hs-scaf{stroke-width:3}
+.mb .hs-mast{stroke-width:1.9}
+.mb-ready{fill:var(--good);stroke:var(--panel);stroke-width:1.5}
+.mb-wait{fill:var(--panel);stroke:var(--warn);stroke-width:2.4}
+.rpanel h2{font:600 19px/1.25 var(--font-serif);margin:0 0 10px}
+.rpanel .overall{margin-bottom:8px}
+.rpanel .big{font-size:34px}
+.rpanel .tlink .ta .sbar{height:6px;margin-top:5px}
+.effort-line{margin:10px 0 0;font-size:13.5px;color:var(--ink-2)}
+.tasks td.num{text-align:right;white-space:nowrap}
+
+/* houses (town plans, territory buildings and keys) */
+.hs-shadow{fill:var(--ink);opacity:.13}
+.hs-wall{fill:var(--land);stroke:var(--ink);stroke-width:1.3;stroke-linejoin:round}
+.hs-roof{stroke:var(--ink);stroke-width:1.3;stroke-linejoin:round}
+.hs-chim{fill:var(--wall);stroke:var(--ink);stroke-width:1.1}
+.hs-door{fill:var(--ink)}
+.hs-win{fill:var(--panel);stroke:var(--ink);stroke-width:1}
+.hs-win.lit{fill:var(--lit)}
+.hs-plan{fill:none;stroke:var(--ink-2);stroke-width:1.3;stroke-dasharray:4 3;stroke-linejoin:round}
+.hs-stake{stroke:var(--ink);stroke-width:1.7;stroke-linecap:round}
+.hs-ribbon{fill:var(--magenta)}
+.hs-scaf{fill:none;stroke:var(--st-progress);stroke-width:2.2;stroke-linecap:round}
+.hs-mast{stroke:var(--ink);stroke-width:1.3}
+.hs-pennant{fill:var(--magenta);stroke:var(--ink);stroke-width:.8}
+.lh .hs-wall,.lh .hs-roof,.lh .hs-chim,.lh .hs-plan{stroke-width:2.2}
+.lh .hs-scaf{stroke-width:3.2}
+.lh .hs-stake{stroke-width:2.6}
+
+/* town plan */
+.view-city{transition:opacity .3s ease,transform .3s ease}
+.view-city.enter{opacity:0;transform:scale(.97)}
+.plan-head{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:flex-end;margin-bottom:14px}
+.plan-title{min-width:0;flex:1 1 420px}
+.kicker{font:italic 400 16px/1.3 var(--font-serif);color:var(--ink-2);margin:0;display:flex;align-items:center;gap:8px}
+.kicker::before{content:"";width:11px;height:11px;border-radius:3px;background:var(--ws-ink);flex:none}
+.plan-title h1{font:600 clamp(24px,3.2vw,32px)/1.1 var(--font-chart);letter-spacing:.04em;margin:2px 0 6px;text-wrap:balance;color:var(--ws-ink)}
+.plan-title p{margin:0;max-width:68ch;color:var(--ink-2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line-strong);background:var(--panel);font-size:13px;font-variant-numeric:tabular-nums}
+.chip.good{border-color:var(--good);color:var(--good)}
+.chip.warn{border-color:var(--warn);color:var(--warn)}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:9px;border:1px solid var(--line-strong);background:var(--panel);text-decoration:none;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--ink-2)}
+.btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.btn.small{padding:4px 9px;font-size:12.5px}
+.btn.back{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.plan-body{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
+.view-city.has-panel .plan-body{grid-template-columns:minmax(0,1fr) minmax(300px,390px)}
+.plan-scroll{overflow:auto;border:1.5px solid var(--ws-ink);border-radius:14px;background:var(--panel);max-height:min(78vh,1100px)}
+.plan-scroll svg{display:block;margin:0 auto}
+.p-land{fill:var(--land)}
+.p-margin{fill:var(--panel)}
+.p-bars rect{fill:var(--ink)}
+.p-frame{fill:none;stroke:var(--ink);stroke-width:1.2}
+.p-colhead{font-family:var(--font-serif);font-style:italic;font-size:14px;fill:var(--ink-2);paint-order:stroke;stroke:var(--ws-wash);stroke-width:4px;stroke-linejoin:round}
+.p-colhead.out{stroke:var(--land)}
+.fog-title{font-family:var(--font-serif);font-style:italic;font-size:22px;fill:var(--ink);text-anchor:middle}
+.fog-sub{font-size:13.5px;fill:var(--ink-2);text-anchor:middle}
+.t-ground{fill:var(--ws-wash)}
+.tuft{fill:none;stroke:var(--ws-ink);stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round;opacity:.2}
+.wall-edge{fill:none;stroke:var(--ink);stroke-width:10;opacity:.5}
+.wall{fill:none;stroke:var(--wall);stroke-width:7}
+.merlons{fill:none;stroke:var(--wall);stroke-width:4;stroke-dasharray:5 6}
+.tower{fill:var(--wall);stroke:var(--ink);stroke-width:1.3}
+.gatehouse rect{fill:var(--wall);stroke:var(--ink);stroke-width:1.2}
+.tree .tr-sh{fill:var(--ink);opacity:.12}
+.tree .tr-c{fill:var(--tree);stroke:var(--tree-edge);stroke-width:1}
+.tree .tr-hi{fill:var(--tree-hi)}
+.sc{fill:none;stroke:var(--ink);stroke-opacity:.5;stroke-width:12;stroke-linecap:round;stroke-linejoin:round}
+.sf{fill:none;stroke:var(--street);stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
+.sc.open{stroke-dasharray:11 6;stroke-linecap:butt;stroke-opacity:.55}
+.sf.open{stroke:var(--street-open)}
+.hs-plot{fill:var(--st-planned);opacity:.75}
+.sh{fill:none;stroke:var(--magenta);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity .15s}
+.sh.on{opacity:1}
+.chev{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
+.chev.on{stroke:var(--magenta);opacity:1}
+.lot{cursor:pointer}
+.lot:focus{outline:none}
+.lot .lot-sh{fill:var(--ink);opacity:.13}
+.lot .lot-b{fill:var(--panel);stroke:var(--line-strong);stroke-width:1.2}
+.lot.st-planned .lot-b{stroke:var(--ink-2);stroke-dasharray:6 4}
+.lot:hover .lot-b,.lot:focus-visible .lot-b{stroke:var(--magenta);stroke-width:2.2;stroke-dasharray:none}
+.lot.rel .lot-b{stroke:var(--ink);stroke-width:2;stroke-dasharray:none}
+.lot.sel .lot-b{stroke:var(--magenta);stroke-width:3;stroke-dasharray:none}
+.lot.out{opacity:.34}
+.lot .eyebrow{font-size:11px;letter-spacing:.07em;fill:var(--ink-2);font-weight:700}
+.lot .bid{font-family:var(--font-mono);font-size:11.5px;fill:var(--muted)}
+.lot .title{font-size:14px;font-weight:600;fill:var(--ink)}
+.lot .meta{font-size:12px;fill:var(--ink-2);font-variant-numeric:tabular-nums}
+.lot .ownr{fill:var(--ground);stroke:var(--line-strong)}
+.lot .ownr-t{font-size:10.5px;font-weight:700;fill:var(--ink);text-anchor:middle}
+.lot .sb-track{fill:var(--line)}
+.lot .sb-fill{fill:var(--st-done)}
+.pill rect{fill:var(--panel);stroke-width:1.2}
+.pill text{font-size:11.5px;font-weight:700}
+.pill.good rect{stroke:var(--good)} .pill.good text{fill:var(--good)}
+.pill.warn rect{stroke:var(--warn)} .pill.warn text{fill:var(--warn)}
+.gate{cursor:pointer}
+.gate:focus{outline:none}
+.gate .sign{fill:var(--panel);stroke:var(--ink-2);stroke-width:1.1}
+.gate.rel .sign{stroke:var(--ink);stroke-width:2}
+.gate:hover .sign,.gate:focus-visible .sign{stroke:var(--magenta);stroke-width:2}
+.gate .gdot{stroke:var(--ink);stroke-width:1}
+.gate .g1{font-family:var(--font-serif);font-style:italic;font-size:12.5px;fill:var(--ink-2)}
+.gate .g2{font-size:13px;font-weight:600;fill:var(--ink)}
+
+/* task drawer */
+.panel{background:var(--panel);border:1px solid var(--line-strong);border-radius:14px;padding:18px 18px 22px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 116px);max-height:calc(100vh - 136px);overflow:auto;min-width:0}
+.p-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.p-kind{display:flex;align-items:center;gap:8px;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);font-weight:700}
+.ico{width:16px;height:16px;flex:none;color:var(--ink-2)}
+.panel h2{font:600 22px/1.25 var(--font-serif);margin:8px 0 10px;text-wrap:balance}
+.p-status{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;font-size:14px}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;display:inline-block}
+.flag{margin-top:10px;padding:8px 10px;border-radius:9px;border:1px solid var(--line-strong);font-size:13.5px;display:flex;gap:8px;align-items:flex-start}
+.flag svg{width:16px;height:16px;flex:none;margin-top:2px}
+.flag.good{border-color:var(--good);color:var(--good)}
+.flag.warn{border-color:var(--warn);color:var(--warn)}
+.facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 14px;margin:14px 0;font-size:14px}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0;overflow-wrap:anywhere}
+.md{font-size:14.5px}
+.md p{margin:0 0 .7em}
+.md ul,.md ol{margin:0 0 .7em;padding-left:1.25em}
+.panel h3{font:700 12px/1.2 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin:20px 0 8px}
+.md h3,.md h4,.md h5,.md h6{font:700 14.5px/1.3 var(--font-ui);margin:1em 0 .4em;text-transform:none;letter-spacing:0;color:var(--ink)}
+.md code{font-size:13px;background:var(--ground);padding:1px 4px;border-radius:4px}
+.md blockquote{margin:0 0 .7em;padding-left:10px;border-left:3px solid var(--line-strong);color:var(--ink-2)}
+.md a{color:var(--magenta)}
+.subs{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.subs li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;font-size:14px;align-items:start}
+.subs svg{width:18px;height:18px}
+.subs li.done span{color:var(--ink-2)}
+.subs li.dropped span{color:var(--muted);text-decoration:line-through}
+.cb{fill:var(--panel);stroke:var(--line-strong);stroke-width:1.4}
+.cb.on{fill:var(--st-done);stroke:var(--st-done)}
+.ck{fill:none;stroke:var(--panel);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ck2{fill:none;stroke:var(--st-progress);stroke-width:2.2;stroke-linecap:round}
+.empty{font-size:13.5px;color:var(--muted);margin:0}
+.links{display:grid;gap:6px}
+.tlink{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:2px 10px;width:100%;text-align:left;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--ground);cursor:pointer}
+.tlink:hover{border-color:var(--line-strong)}
+.tlink:disabled{cursor:default;opacity:.65}
+.tlink .mono{font-size:12px;color:var(--muted)}
+.tlink .tt{display:flex;align-items:center;gap:7px;font-size:14px;min-width:0}
+.tlink .ta{grid-column:2;font-size:12px;color:var(--muted)}
+.linkish{border:0;background:none;padding:0;color:var(--magenta);text-decoration:underline;cursor:pointer;text-align:left}
+.p-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.pathrow{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:10px;font-size:12.5px;color:var(--muted)}
+.pathrow code{font-size:12px;overflow-wrap:anywhere;user-select:all;min-width:0}
+
+/* pages */
+.page{max-width:1120px;margin:0 auto}
+.page.wide{max-width:1480px}
+.page-head h1{font:600 clamp(26px,3.4vw,34px)/1.1 var(--font-chart);letter-spacing:.04em;margin:4px 0 8px}
+.lede{margin:0;max-width:72ch;color:var(--ink-2)}
+.section{padding-block:22px;border-top:1px solid var(--line)}
+.section h2{font:600 19px/1.25 var(--font-serif);margin:0 0 12px}
+.overall{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;margin-bottom:12px}
+.big{font:600 46px/1 var(--font-serif)}
+.rows{display:grid;gap:14px}
+.row{display:grid;grid-template-columns:minmax(150px,250px) minmax(0,1fr) auto;gap:6px 16px;align-items:center}
+.row .rn{font-weight:600;min-width:0}
+.row .rn small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.row .rc{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.wsdot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px;vertical-align:-.5px;flex:none}
+.sbar{display:flex;gap:2px;height:12px;min-width:0}
+.sbar span{border-radius:2px;min-width:3px}
+.sbar span:first-child{border-top-left-radius:4px;border-bottom-left-radius:4px}
+.sbar span:last-child{border-top-right-radius:4px;border-bottom-right-radius:4px}
+.sbar.big{height:18px}
+.sbar.empty{background:var(--line);border-radius:4px}
+.tip .sbar{height:8px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:22px 30px}
+.list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.tablewrap{overflow-x:auto}
+table.counts{border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums;min-width:600px;width:100%}
+.counts th,.counts td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right}
+.counts th:first-child,.counts td:first-child{text-align:left}
+.counts thead th{font-weight:700;color:var(--ink-2);font-size:12.5px}
+.counts tfoot td{font-weight:700;border-bottom:0}
+.list-tools{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:18px 0 12px}
+.lfilter{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2)}
+.lfilter input{width:min(340px,64vw);padding:7px 10px;border-radius:9px;border:1px solid var(--line-strong);background:var(--panel);font-size:14px}
+.list-tools .btn{margin-left:auto}
+.fallback{display:block;width:100%;min-height:120px;font:12px/1.4 var(--font-mono);margin-bottom:12px;border-radius:9px;border:1px solid var(--line-strong);background:var(--panel);padding:8px}
+.listwrap{overflow:auto;max-height:calc(100vh - 300px);min-height:260px;border:1px solid var(--line-strong);border-radius:12px;background:var(--panel)}
+table.tasks{border-collapse:separate;border-spacing:0;width:100%;min-width:1180px;font-size:13.5px;font-variant-numeric:tabular-nums}
+.tasks th{position:sticky;top:0;z-index:1;background:var(--panel);text-align:left;padding:0;border-bottom:1px solid var(--line-strong);white-space:nowrap}
+.tasks th button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 10px;font-weight:700;font-size:12.5px;color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.tasks th button:hover{color:var(--ink)}
+.tasks th button:focus-visible{outline-offset:-3px}
+.tasks th[aria-sort] button{color:var(--ink)}
+.tasks td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.tasks tbody tr{cursor:pointer}
+.tasks tbody tr:hover td{background:var(--ground)}
+.tasks td a{color:var(--ink);text-decoration:none;font-weight:600}
+.tasks td a:hover{text-decoration:underline}
+.tasks .nowrap{white-space:nowrap}
+.tasks .nx-ready{color:var(--good);font-weight:700}
+.tasks .nx-wait{color:var(--warn);font-weight:700}
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:20px 16px;margin-top:14px}
+.note{position:relative;background:var(--panel);border:1px solid var(--line-strong);border-radius:6px;padding:22px 18px 16px;display:flex;flex-direction:column;gap:10px}
+.note::before{content:"";position:absolute;top:-6px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--magenta);border:2px solid var(--panel)}
+.note h3{font:600 17px/1.3 var(--font-serif);margin:0;text-wrap:balance}
+.note .md{font-size:14px;color:var(--ink-2)}
+.note .md p{margin:0}
+.note .meta{font-size:12.5px;color:var(--muted)}
+.note .votes{font-size:13px}
+.note .state{margin-top:auto;padding-top:10px;border-top:1px dashed var(--line-strong);font-size:13.5px}
+.note.open .state{color:var(--warn);font-weight:600}
+.issues{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
+.issue{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;align-items:start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.issue .sev{font:700 12px/1 var(--font-mono);padding:5px 7px;border-radius:6px;border:1px solid}
+.issue.error .sev{color:var(--bad)} .issue.warning .sev{color:var(--warn)} .issue.info .sev{color:var(--ink-2)}
+.issue .msg{font-size:14px}
+.issue .where{grid-column:2;font:12px var(--font-mono);color:var(--muted);overflow-wrap:anywhere}
+.issue .btn{grid-row:span 2}
+
+/* tooltip and help */
+.tip{position:fixed;z-index:60;pointer-events:none;max-width:320px;background:var(--panel);color:var(--ink);border:1px solid var(--line-strong);border-radius:10px;box-shadow:var(--shadow);padding:10px 12px;font-size:13px;line-height:1.45}
+.tip b{font:600 15px/1.3 var(--font-serif)}
+.tip .tbar{margin:8px 0 6px}
+.overlay{position:fixed;inset:0;z-index:70;background:var(--scrim);display:grid;place-items:center;padding:16px}
+.dialog{background:var(--panel);color:var(--ink);border-radius:14px;max-width:680px;width:100%;max-height:86vh;overflow:auto;padding:22px 24px;box-shadow:var(--shadow)}
+.dialog h2{font:600 24px/1.2 var(--font-chart);letter-spacing:.04em;margin:0 0 8px}
+.dialog dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;margin:16px 0}
+.dialog dt{font-weight:700}
+.dialog dd{margin:0;color:var(--ink-2)}
+.dialog .btn{margin-top:4px}
+
+@media (max-width:1100px){
+  .region-body{grid-template-columns:minmax(0,1fr)}
+  .rpanel{position:static;max-height:none}
+}
+@media (max-width:960px){
+  .view-city.has-panel .plan-body{grid-template-columns:minmax(0,1fr)}
+  #panel{position:fixed;left:0;right:0;bottom:0;top:auto;max-height:72vh;border-radius:16px 16px 0 0;z-index:45;box-shadow:var(--shadow);padding-bottom:calc(22px + env(safe-area-inset-bottom,0px))}
+}
+@media (max-width:640px){
+  .top{position:static}
+  .row{grid-template-columns:minmax(0,1fr) auto}
+  .row .sbar{grid-column:1/-1;grid-row:2}
+  .depth{margin-left:0}
+  .list-tools .btn{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){
+  body,.map-stage,.view-city{transition:none!important}
+  .bob,.pulse{animation:none!important}
+  .pulse{opacity:0}
+  .smoke circle{animation:none!important;opacity:.35}
+  .smoke circle:nth-child(2){transform:translate(3px,-8px)}
+  .smoke circle:nth-child(3){transform:translate(6px,-15px)}
+}
+</style>
+
+<header class="top">
+  <div class="bar">
+    <a class="brand" href="#map" aria-label="FPGA Team Atlas: back to the chart">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13.5" fill="none" stroke="var(--magenta)" stroke-width="1.5"/><path d="M16 3.5l3 12.5-3 12.5-3-12.5z" fill="var(--magenta)"/><path d="M3.5 16l12.5-3 12.5 3-12.5 3z" fill="var(--magenta)" opacity=".55"/><circle cx="16" cy="16" r="2" fill="var(--panel)"/></svg>
+      <b id="brandTitle">FPGA Team Atlas</b>
+    </a>
+    <nav class="tabs" aria-label="Views">
+      <a class="tab" href="#map" data-view="map">Map</a>
+      <a class="tab" href="#progress" data-view="progress">Progress</a>
+      <a class="tab" href="#list" data-view="list">List</a>
+      <a class="tab" href="#board" data-view="board">Notice board <span class="count" id="boardCount" hidden></span></a>
+      <a class="tab" href="#checks" data-view="checks">Checks <span class="count" id="checksCount" hidden></span></a>
+    </nav>
+    <div class="tools">
+      <div class="search">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <input id="q" type="search" placeholder="Find a task, area or workstream" autocomplete="off" aria-label="Find a task, area or workstream" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="results">
+        <div class="results" id="results" role="listbox" aria-label="Matches" hidden></div>
+      </div>
+      <button class="icon-btn" id="helpBtn" type="button" aria-label="How to read the map" title="How to read the map">?</button>
+    </div>
+  </div>
+  <div class="filters" id="filters">
+    <label for="fMs">Milestone <select id="fMs"></select></label>
+    <span class="seg" role="group" aria-label="DAL scope">
+      <button type="button" id="scopeAll" data-scope="all" aria-pressed="true">All DALs</button>
+      <button type="button" id="scopeCD" data-scope="cd" aria-pressed="false" title="Hide work that is only needed at DAL A or B">C and D only</button>
+    </span>
+    <label for="fOwner">Owner <select id="fOwner"></select></label>
+    <nav class="depth" id="depth" aria-label="Map level" hidden></nav>
+  </div>
+</header>
+
+<main id="main">
+  <section id="v-map" class="view" aria-label="Chart">
+    <div class="map-scroll"><div class="map-wrap"><div class="map-stage" id="stage"><canvas id="terrain" aria-hidden="true"></canvas><canvas id="hilite" aria-hidden="true"></canvas><svg id="world" viewBox="0 0 1600 1000" role="group" aria-label="Chart of the roadmap: workstreams as territories, areas as towns"></svg></div></div></div>
+    <div class="key" id="key"></div>
+  </section>
+  <section id="v-region" class="view view-region" aria-label="Territory" hidden>
+    <div class="plan-head" id="regionHead"></div>
+    <div class="region-body">
+      <div>
+        <div class="map-scroll"><div class="map-wrap"><div class="map-stage" id="rstage"><canvas id="rterrain" aria-hidden="true"></canvas><svg id="rsvg" viewBox="0 0 1200 750" role="group" aria-label="Territory map"></svg></div></div></div>
+        <div class="key" id="rkey"></div>
+      </div>
+      <aside class="panel rpanel" id="rpanel" aria-label="Territory summary"></aside>
+    </div>
+  </section>
+  <section id="v-city" class="view view-city" aria-label="Town plan" hidden>
+    <div class="plan-head" id="planHead"></div>
+    <div class="plan-body">
+      <div>
+        <div class="plan-scroll" id="planScroll"><svg id="plan" role="group" aria-label="Plan of the area's tasks"></svg></div>
+        <div class="key" id="pkey"></div>
+      </div>
+      <aside class="panel" id="panel" aria-label="Task details" hidden></aside>
+    </div>
+  </section>
+  <section id="v-progress" class="view page" hidden></section>
+  <section id="v-list" class="view page wide" hidden></section>
+  <section id="v-board" class="view page" hidden></section>
+  <section id="v-checks" class="view page" hidden></section>
+</main>
+
+<div class="tip" id="tip" role="tooltip" hidden></div>
+<div class="overlay" id="help" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <h2 id="helpTitle">How to read the map</h2>
+    <p class="lede">The map is drawn from the roadmap notes every time the atlas is built. Nothing is placed by hand, so it is exactly as current as the notes.</p>
+    <dl>
+      <dt>Four levels</dt><dd>The chart, a territory, a town and a task. The numbered steps in the toolbar show where you are, and the page takes on the territory's colour as you go deeper. Press Esc to go up a level.</dd>
+      <dt>Territories</dt><dd>Workstreams. Click one to zoom in and see only its towns, with each task as a small house.</dd>
+      <dt>Towns</dt><dd>Areas of work inside a workstream. The ring round each town shows its tasks by stage.</dd>
+      <dt>West to east</dt><dd>Earlier to later in the order work unlocks: foundations in the west, delivery in the east.</dd>
+      <dt>Tracks</dt><dd>One area's tasks need another area's first. Solid once the prerequisite is finished, dotted while it is still open.</dd>
+      <dt>Fog</dt><dd>An area with no tasks yet. It clears when someone breaks the area down.</dd>
+      <dt>Town plans</dt><dd>Inside the walls, one house per task, left to right in the order they can be done. Streets run from each task to the work it unlocks. A street with dashed edges is waiting on unfinished work. Gates lead to other towns.</dd>
+      <dt>Houses</dt><dd>Survey stakes: planned. Scaffolding: in progress. Pennant: in review. Finished house: done. Lit windows and a smoking chimney: adopted and in routine use.</dd>
+      <dt>Ready, Waiting</dt><dd>Ready means everything a task needs is done, so anyone can pick it up. Waiting means work has started but a prerequisite is still open.</dd>
+      <dt>List</dt><dd>Every task in one table you can sort, filter and copy into a spreadsheet.</dd>
+      <dt>Notice board</dt><dd>Requests from the team for templates, checklists and guides that don't exist yet.</dd>
+    </dl>
+    <p class="muted">To change anything, edit the notes in Obsidian, then rebuild the atlas.</p>
+    <button type="button" class="btn primary" id="helpClose">Close</button>
+  </div>
+</div>
+
+<script id="atlas-data" type="application/json">__ATLAS_DATA__</script>
+<script>
+(function () {
+  "use strict";
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const f1 = v => String(Math.round(v * 10) / 10);
+  const enc = encodeURIComponent;
+  const reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+  let D = null;
+  try { D = JSON.parse($("#atlas-data").textContent); } catch (e) { D = null; }
+  if (!D || !D.meta) {
+    $("#main").innerHTML = '<section class="page"><div class="page-head"><h1>No roadmap data yet</h1><p class="lede">This is the atlas template. Build the page with <code>python tools/build_atlas.py</code>, then open <code>public/index.html</code>.</p></div></section>';
+    $("#filters").hidden = true;
+    return;
+  }
+
+  /* ---------------- model ---------------- */
+  const STAGES = ["planned", "in-progress", "review", "done", "adopted"];
+  const BAR_ORDER = ["adopted", "done", "review", "in-progress", "planned"];
+  const STAGE_LABEL = { planned: "Planned", "in-progress": "In progress", review: "In review", done: "Done", adopted: "Adopted" };
+  const STAGE_HINT = { planned: "Not started yet.", "in-progress": "Being worked on.", review: "Drafted and waiting for review.", done: "Finished and published.", adopted: "Finished and in routine use by the team." };
+  const KIND_LABEL = { template: "Template", checklist: "Checklist", guide: "Guide", decision: "Decision", setup: "Setup", training: "Training", process: "Process" };
+  const COMPLETE = s => s === "done" || s === "adopted";
+  const cmpId = (a, b) => a.id.localeCompare(b.id, undefined, { numeric: true });
+  const msName = m => m.title && m.title.toLowerCase() !== m.id.toLowerCase() ? m.id + " " + m.title : m.id;
+
+  const byId = new Map();
+  const WS = (D.workstreams || []).map(w => Object.assign(w, { _t: "ws", areas: [] }));
+  const AR = (D.areas || []).map(a => Object.assign(a, { _t: "area", tasks: [] }));
+  const TK = (D.tasks || []).map(t => Object.assign(t, { _t: "task", deps: [], dependents: [] }));
+  const MS = (D.milestones || []).map(m => Object.assign(m, { _t: "ms" }));
+  const RQ = (D.requests || []).map(r => Object.assign(r, { _t: "req" }));
+  [WS, AR, TK, MS, RQ].forEach(list => list.forEach(x => byId.set(x.id, x)));
+  WS.forEach((w, i) => { w._idx = i; w._ci = (i % 6) + 1; });
+  AR.forEach(a => { const w = byId.get(a.parent); if (w && w._t === "ws") { a.ws = w; w.areas.push(a); } });
+  TK.forEach(t => { const a = byId.get(t.parent); if (a && a._t === "area") { t.area = a; t.ws = a.ws; a.tasks.push(t); } });
+  TK.forEach(t => (t.depends_on || []).forEach(id => { const d = byId.get(id); if (d && d._t === "task" && d !== t) { t.deps.push(d); d.dependents.push(t); } }));
+  AR.forEach(a => a.tasks.sort(cmpId));
+  const MAPPED = TK.filter(t => t.area && t.area.ws);
+  const owners = Array.from(new Set(TK.map(t => t.owner).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+
+  const onMap = t => !!(t && t._t === "task" && t.area && t.area.ws);
+  const openDeps = t => t.deps.filter(d => !COMPLETE(d.status));
+  const isReady = t => t.status === "planned" && t.deps.every(d => COMPLETE(d.status));
+  const isWaiting = t => (t.status === "in-progress" || t.status === "review") && openDeps(t).length > 0;
+  const onlyAB = t => !!(t.dal && t.dal.length && t.dal.indexOf("C") < 0 && t.dal.indexOf("D") < 0);
+  function downstream(t) { const seen = new Set(), st = [t]; while (st.length) { st.pop().dependents.forEach(d => { if (!seen.has(d)) { seen.add(d); st.push(d); } }); } return seen; }
+  function subInfo(t) { const live = (t.subtasks || []).filter(x => x.state !== "dropped"); return { n: live.length, done: live.filter(x => x.state === "done").length }; }
+  const EST_UNIT = D.meta.estimate_unit || "days";
+  const hasEst = TK.some(t => typeof t.estimate === "number");
+  const fmtNum = n => String(Math.round(n * 10) / 10);
+  const fmtEst = n => fmtNum(n) + " " + (Math.round(n * 10) === 10 ? EST_UNIT.replace(/s$/, "") : EST_UNIT);
+  /* Effort: estimates summed by stage, like stats() counts tasks. */
+  function effort(list) {
+    const c = {}; STAGES.forEach(s => { c[s] = 0; });
+    let n = 0, none = 0;
+    list.forEach(t => { if (typeof t.estimate !== "number") { none++; return; } c[t.status] += t.estimate; n += t.estimate; });
+    return { n, c, built: c.done + c.adopted, left: n - c.done - c.adopted, none };
+  }
+
+  const F = { ms: "all", scope: "all", owner: "all" };
+  const inScope = t => F.scope === "all" || !onlyAB(t);
+  const match = t => inScope(t) && (F.ms === "all" || t.milestone === F.ms) && (F.owner === "all" || t.owner === F.owner);
+  const filtersOn = () => F.ms !== "all" || F.scope !== "all" || F.owner !== "all";
+  function stats(list) { const c = {}; STAGES.forEach(s => { c[s] = 0; }); list.forEach(t => { c[t.status] = (c[t.status] || 0) + 1; }); return { n: list.length, c, built: c.done + c.adopted }; }
+
+  /* ---------------- helpers ---------------- */
+  const mctx = document.createElement("canvas").getContext("2d");
+  const FONT_UI = '"Atkinson Hyperlegible Next", system-ui, sans-serif';
+  const FONT_CHART = '"Spectral SC", Georgia, serif';
+  const FONT_SERIF = '"Spectral", Georgia, serif';
+  const FONT_MONO = '"Atkinson Hyperlegible Mono", ui-monospace, Consolas, monospace';
+  function textW(s, font) { mctx.font = font; return mctx.measureText(s).width; }
+  /* s cut short with an ellipsis so it fits in maxW. */
+  function fitText(s, maxW, font, spacing) {
+    s = String(s);
+    const w = x => textW(x, font) + (spacing || 0) * x.length;
+    if (w(s) <= maxW) return s;
+    while (s.length > 1 && w(s + "…") > maxW) s = s.slice(0, -1);
+    return s.replace(/[\s,;:.\-·]+$/, "") + "…";
+  }
+  function wrapText(text, maxW, font, maxLines) {
+    mctx.font = font;
+    const words = String(text).split(/\s+/).filter(Boolean), lines = [];
+    let cur = "", used = 0;
+    for (let i = 0; i < words.length; i++) {
+      const test = cur ? cur + " " + words[i] : words[i];
+      if (!cur || mctx.measureText(test).width <= maxW) { cur = test; used = i + 1; continue; }
+      lines.push(cur); cur = words[i]; used = i + 1;
+      if (lines.length === maxLines) { cur = ""; used = i; break; }
+    }
+    if (cur) lines.push(cur);
+    if (used < words.length && lines.length) {
+      let last = lines[lines.length - 1] + " " + words.slice(used).join(" ");
+      while (last.length > 1 && mctx.measureText(last + "…").width > maxW) last = last.slice(0, -1);
+      lines[lines.length - 1] = last.replace(/[\s,;:.\-]+$/, "") + "…";
+    }
+    return lines.map(l => { if (mctx.measureText(l).width <= maxW) return l; while (l.length > 1 && mctx.measureText(l + "…").width > maxW) l = l.slice(0, -1); return l + "…"; });
+  }
+  function mulberry32(a) { return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function hashStr(s) { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function makeNoise(seed) {
+    const rnd = mulberry32(seed), p = new Uint8Array(512), g = new Float32Array(256);
+    const perm = Array.from({ length: 256 }, (_, i) => i);
+    for (let i = 255; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const tmp = perm[i]; perm[i] = perm[j]; perm[j] = tmp; }
+    for (let i = 0; i < 512; i++) p[i] = perm[i & 255];
+    for (let i = 0; i < 256; i++) g[i] = rnd();
+    const v = (ix, iy) => g[p[(p[ix & 255] + (iy & 255)) & 511]];
+    const fade = t => t * t * (3 - 2 * t);
+    const base = (x, y) => { const ix = Math.floor(x), iy = Math.floor(y), u = fade(x - ix), w = fade(y - iy); const a = v(ix, iy), b = v(ix + 1, iy), c = v(ix, iy + 1), d = v(ix + 1, iy + 1); return a + (b - a) * u + (c - a) * w + (a - b - c + d) * u * w; };
+    return (x, y) => { let s = 0, amp = 0.5, f = 1, n = 0; for (let o = 0; o < 4; o++) { s += amp * base(x * f, y * f); n += amp; amp *= 0.5; f *= 2.03; } return s / n; };
+  }
+  function parseColor(s) {
+    s = (s || "").trim();
+    let m = /^#([0-9a-f]{3})$/i.exec(s); if (m) return m[1].split("").map(c => parseInt(c + c, 16));
+    m = /^#([0-9a-f]{6})$/i.exec(s); if (m) return [0, 2, 4].map(i => parseInt(m[1].substr(i, 2), 16));
+    m = /rgba?\(([^)]+)\)/i.exec(s); if (m) return m[1].split(/[\s,\/]+/).filter(Boolean).slice(0, 3).map(Number);
+    return [128, 128, 128];
+  }
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function fmtDate(s, time) { const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/.exec(s || ""); if (!m) return s || ""; let out = (+m[3]) + " " + MONTHS[+m[2] - 1] + " " + m[1]; if (time && m[4]) out += ", " + m[4] + ":" + m[5]; return out; }
+  function initials(name) { if (!name) return "?"; return name.split(/\s+/).filter(Boolean).map(w => w[0]).join("").slice(0, 2).toUpperCase(); }
+  function obsUri(path) { if (!D.meta.vault || !path) return "#"; return "obsidian://open?vault=" + enc(D.meta.vault) + "&file=" + enc(path.replace(/\.md$/i, "")); }
+  function gitlabUrl(path) { if (!D.meta.repo_url || !path) return ""; return D.meta.repo_url.replace(/\/$/, "") + "/-/blob/" + enc(D.meta.ref || "main") + "/" + path.split("/").map(enc).join("/"); }
+  function resolvePath(base, rel) {
+    const parts = (base || "").split("/"); parts.pop();
+    rel.split("/").forEach(seg => { if (seg === "..") parts.pop(); else if (seg && seg !== ".") parts.push(seg); });
+    return parts.join("/");
+  }
+  const unesc = s => String(s).replace(/&(amp|lt|gt|quot|#39);/g, (m, k) => ({ amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'" }[k]));
+  const isWeb = u => /^https?:\/\//i.test(String(u || ""));
+  function inline(s, base) {
+    // text content only, so quotes stay as they are (an escaped ' would read as a # in [[Bob's note]])
+    let h = String(s == null ? "" : s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+    h = h.replace(/`([^`]+)`/g, "<code>$1</code>");
+    h = h.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    h = h.replace(/(^|[^*\w])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>");
+    h = h.replace(/\[\[([^\]|#]+)(#[^\]|]*)?(?:\|([^\]]+))?\]\]/g, (m0, target, anchor, alias) => `<a href="${esc(obsUri(unesc(target).trim()))}">${alias || target}</a>`);
+    h = h.replace(/\[([^\]]+)\]\(((?:[^()\s]|\([^()\s]*\))+)\)/g, (m0, text, href) => {
+      const raw = unesc(href);
+      if (/^https?:\/\//i.test(raw)) return `<a href="${esc(raw)}" target="_blank" rel="noopener">${text}</a>`;
+      if (/^[a-z][a-z0-9+.\-]*:/i.test(raw)) return text;
+      const p = resolvePath(base, raw.split("#")[0]);
+      return `<a href="${esc(obsUri(p))}">${text}</a>`;
+    });
+    return h;
+  }
+  function md(src, base) {
+    if (!src) return "";
+    let out = "", list = null, para = [], code = null;
+    const flush = () => { if (para.length) { out += "<p>" + inline(para.join(" "), base) + "</p>"; para = []; } };
+    const close = () => { if (list) { out += "</" + list + ">"; list = null; } };
+    src.replace(/\r/g, "").split("\n").forEach(raw => {
+      const line = raw.replace(/\s+$/, "");
+      if (code !== null) { if (/^\s*```/.test(line)) { out += "<pre><code>" + esc(code.join("\n")) + "</code></pre>"; code = null; } else code.push(raw); return; }
+      if (/^\s*```/.test(line)) { flush(); close(); code = []; return; }
+      let m;
+      if (!line.trim()) { flush(); close(); return; }
+      if ((m = /^(#{1,6})\s+(.*)$/.exec(line))) { flush(); close(); const l = Math.min(6, m[1].length + 2); out += `<h${l}>${inline(m[2], base)}</h${l}>`; return; }
+      if ((m = /^\s*[-*+]\s+(.*)$/.exec(line))) { flush(); if (list !== "ul") { close(); out += "<ul>"; list = "ul"; } out += "<li>" + inline(m[1], base) + "</li>"; return; }
+      if ((m = /^\s*\d+[.)]\s+(.*)$/.exec(line))) { flush(); if (list !== "ol") { close(); out += "<ol>"; list = "ol"; } out += "<li>" + inline(m[1], base) + "</li>"; return; }
+      if ((m = /^>\s?(.*)$/.exec(line))) { flush(); close(); out += "<blockquote>" + inline(m[1].replace(/^\[![a-z]+\]\s*/i, ""), base) + "</blockquote>"; return; }
+      close(); para.push(line.trim());
+    });
+    if (code !== null) out += "<pre><code>" + esc(code.join("\n")) + "</code></pre>";
+    flush(); close();
+    return out;
+  }
+
+  const ICONS = {
+    template: '<path d="M3.5 1.5h6l3 3v10h-9z"/><path d="M9.5 1.5v3h3"/><path d="M5.8 8h4.4M5.8 10.5h4.4"/>',
+    checklist: '<path d="M2 4.3l1.4 1.4L6 3M2 9.3l1.4 1.4L6 8"/><path d="M8 4.5h6M8 9.5h6M8 13.8h6M2.6 13.8h2.8"/>',
+    guide: '<path d="M1.5 3.2c2.3-.9 4.6-.9 6.5.6 1.9-1.5 4.2-1.5 6.5-.6v10c-2.3-.9-4.6-.9-6.5.6-1.9-1.5-4.2-1.5-6.5-.6z"/><path d="M8 3.8v10"/>',
+    decision: '<path d="M8 2v12.2M4.6 14.2h6.8M2.4 4.4h11.2"/><path d="M2.4 4.4L.9 8.4h3zM13.6 4.4l-1.5 4h3z"/>',
+    setup: '<circle cx="8" cy="8" r="2.5"/><path d="M8 1.6v2.2M8 12.2v2.2M1.6 8h2.2M12.2 8h2.2M3.5 3.5L5 5M11 11l1.5 1.5M3.5 12.5L5 11M11 5l1.5-1.5"/>',
+    training: '<path d="M.8 6L8 2.6 15.2 6 8 9.4z"/><path d="M3.6 7.4v3.6c2.6 1.9 6.2 1.9 8.8 0V7.4M15.2 6v4"/>',
+    process: '<path d="M2.6 8a5.4 5.4 0 0 1 9.6-3.4M12.6 1.8v3h-3M13.4 8a5.4 5.4 0 0 1-9.6 3.4M3.4 14.2v-3h3"/>',
+    task: '<rect x="2.5" y="2.5" width="11" height="11" rx="2"/>'
+  };
+  const iconPaths = kind => `<g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${ICONS[kind] || ICONS.task}</g>`;
+  const ICO_CHECK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const ICO_WAIT = '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.6V8l2.4 1.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  const fogFilter = id => `<filter id="${id}" x="-40%" y="-40%" width="180%" height="180%"><feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="3" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="34" xChannelSelector="R" yChannelSelector="G" result="d"/><feGaussianBlur in="d" stdDeviation="6"/></filter>`;
+  const wsDot = w => `<i class="wsdot" style="background:var(--ws-${w ? w._ci : 1})" aria-hidden="true"></i>`;
+
+  /* One house per task. Its look follows the stage: stakes, scaffolding, pennant, finished, lived in. Drawn in a 56 x 62 box. */
+  function houseSvg(st, mini) {
+    const shadow = '<ellipse class="hs-shadow" cx="28" cy="60" rx="25" ry="3"/>';
+    const roof = "M3,31L28,9L53,31Z";
+    if (st === "planned") return `${shadow}<rect class="hs-plot" x="4" y="53" width="48" height="9" rx="3"/><path class="hs-plan" d="M9,60V31H47V60Z"/><path class="hs-plan" d="${roof}"/><path class="hs-stake" d="M9,61V41M47,61V45"/><path class="hs-ribbon" d="M9,41.5L19,45L9,48.5Z"/>`;
+    if (st === "in-progress") return `${shadow}<rect class="hs-plot" x="4" y="53" width="48" height="9" rx="3"/><path class="hs-plan" d="M9,44V31H47V44"/><path class="hs-plan" d="${roof}"/><rect class="hs-wall" x="9" y="44" width="38" height="16"/><path class="hs-door" d="M24,60V52H32V60Z"/><path class="hs-scaf" d="M5,61V23M51,61V23M3,40H53M3,52H53M5,52L51,40"/>`;
+    const lit = st === "adopted";
+    const win = `<rect class="hs-win${lit ? " lit" : ""}" x="13" y="37" width="8" height="8" rx="1"/><rect class="hs-win${lit ? " lit" : ""}" x="35" y="37" width="8" height="8" rx="1"/>`;
+    let s = `${shadow}<path class="hs-chim" d="M37,25V13H43V25Z"/><rect class="hs-wall" x="9" y="30" width="38" height="30"/><path class="hs-roof fl-${st}" d="${roof}"/><path class="hs-door" d="M24,60V49a4,4 0 0 1 8,0V60Z"/>${win}`;
+    if (st === "review") s += '<path class="hs-mast" d="M28,9V-4"/><path class="hs-pennant" d="M28,-4L39,-.5L28,3Z"/>';
+    if (lit && !mini) s += '<g class="smoke"><circle cx="40" cy="10" r="3"/><circle cx="40" cy="10" r="3"/><circle cx="40" cy="10" r="3"/></g>';
+    return s;
+  }
+  const houseKey = () => STAGES.map(s => `<span class="k"><svg class="lh" width="24" height="27" viewBox="0 -6 56 68" aria-hidden="true">${houseSvg(s, true)}</svg>${STAGE_LABEL[s]}</span>`).join("");
+
+  /* ---------------- tooltip ---------------- */
+  const tip = $("#tip");
+  function showTip(html, e) { tip.innerHTML = html; tip.hidden = false; moveTip(e); }
+  function moveTip(e) {
+    if (tip.hidden || !e || e.clientX === undefined) return;
+    const pad = 14, r = tip.getBoundingClientRect();
+    let x = e.clientX + pad, y = e.clientY + pad;
+    if (x + r.width > window.innerWidth - 8) x = e.clientX - r.width - pad;
+    if (y + r.height > window.innerHeight - 8) y = e.clientY - r.height - pad;
+    tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px";
+  }
+  function hideTip() { tip.hidden = true; }
+
+  function sbar(st, cls, unit, tag) {
+    const c = "sbar" + (cls ? " " + cls : ""), el = tag || "div", u = unit ? " " + unit : "", num = v => unit ? fmtNum(v) : v;
+    if (!st.n) return `<${el} class="${c} empty" role="img" aria-label="${unit ? "No estimates" : "No tasks"}"></${el}>`;
+    const label = BAR_ORDER.filter(s => st.c[s]).map(s => num(st.c[s]) + u + " " + STAGE_LABEL[s].toLowerCase()).join(", ");
+    return `<${el} class="${c}" role="img" aria-label="${esc(label)}">${BAR_ORDER.filter(s => st.c[s]).map(s => `<span class="bg-${s}" style="flex:${st.c[s]} 1 0" data-tip="${esc(STAGE_LABEL[s] + ": " + num(st.c[s]) + " of " + num(st.n) + u)}"></span>`).join("")}</${el}>`;
+  }
+  const pctOf = (part, whole) => !whole ? 0 : part >= whole - 1e-9 ? 100 : Math.min(99, Math.floor(part / whole * 100));
+  const legendHtml = () => STAGES.map(s => `<span><i class="sw bg-${s}"></i>${STAGE_LABEL[s]}</span>`).join("");
+
+  /* ---------------- world chart ---------------- */
+  const MW = 1600, MH = 1000, RW = 1200, RH = 750, ISLE = 100;
+  const HINT_XY = { west: [0.2, 0.5], north: [0.47, 0.3], south: [0.53, 0.72], east: [0.8, 0.5], centre: [0.5, 0.5], center: [0.5, 0.5], northwest: [0.27, 0.3], northeast: [0.73, 0.3], southwest: [0.27, 0.72], southeast: [0.73, 0.72] };
+  const CART = { x: 34, y: MH - 158, w: 360, h: 118 };
+  const ROSE = { x: MW - 132, y: MH - 150 };
+  let WORLD = null;
+
+  function anchorSlots(n) {
+    if (n <= 1) return [[0.5, 0.5]];
+    if (n === 2) return [[0.32, 0.5], [0.68, 0.5]];
+    if (n === 3) return [[0.22, 0.53], [0.5, 0.42], [0.78, 0.55]];
+    if (n === 4) return [HINT_XY.west, HINT_XY.north, HINT_XY.south, HINT_XY.east];
+    const out = [];
+    for (let i = 0; i < n; i++) { const t = i / (n - 1); out.push([0.15 + 0.7 * t, 0.5 + (i % 2 ? 0.19 : -0.17) * Math.sin(Math.PI * t)]); }
+    return out;
+  }
+  function cityR(a) { return 20 + 3 * Math.sqrt(Math.max(1, a.tasks.length)); }
+  function cityBox(a) {
+    const r = cityR(a), fog = !a.tasks.length;
+    const hw = Math.max(r + 8, a._lw || 0, fog ? 82 : 0);
+    return { x0: a._x - hw, x1: a._x + hw, y0: a._y - (fog ? 72 : r + 8), y1: a._y + Math.max(r + 50, fog ? 72 : 0) };
+  }
+  function layers(tasks) {
+    const inSet = new Set(tasks), indeg = new Map(), layer = new Map(), popped = new Set();
+    tasks.forEach(t => indeg.set(t, 0));
+    tasks.forEach(t => t.deps.forEach(d => { if (inSet.has(d)) indeg.set(t, indeg.get(t) + 1); }));
+    const q = tasks.filter(t => indeg.get(t) === 0).sort(cmpId);
+    q.forEach(t => layer.set(t, 0));
+    for (let qi = 0; qi < q.length; qi++) {
+      const n = q[qi]; popped.add(n);
+      n.dependents.forEach(m => {
+        if (!inSet.has(m)) return;
+        layer.set(m, Math.max(layer.has(m) ? layer.get(m) : 0, layer.get(n) + 1));
+        indeg.set(m, indeg.get(m) - 1);
+        if (indeg.get(m) === 0) q.push(m);
+      });
+    }
+    let maxL = 0; popped.forEach(t => { maxL = Math.max(maxL, layer.get(t)); });
+    tasks.forEach(t => { if (!popped.has(t)) layer.set(t, maxL + 1); });
+    return layer;
+  }
+  function areaEdges() {
+    const m = new Map();
+    MAPPED.forEach(t => t.deps.forEach(d => {
+      if (!d.area || !d.area.ws || d.area === t.area) return;
+      const k = d.area.id + ">" + t.area.id;
+      let e = m.get(k); if (!e) { e = { from: d.area, to: t.area, pairs: [] }; m.set(k, e); }
+      e.pairs.push([d, t]);
+    }));
+    return Array.from(m.values());
+  }
+  function layoutWorld() {
+    const layer = layers(MAPPED);
+    const avg = xs => xs.reduce((s, v) => s + v, 0) / xs.length;
+    AR.forEach(a => { const ls = a.tasks.filter(t => layer.has(t)).map(t => layer.get(t)); a._layer = ls.length ? avg(ls) : null; });
+    const live = WS.filter(w => w.areas.length);
+    live.forEach(w => { const ls = w.areas.map(a => a._layer).filter(v => v !== null); w._layer = ls.length ? avg(ls) : 0; });
+    AR.forEach(a => { if (a._layer === null) a._layer = a.ws ? a.ws._layer + 0.5 : 0; });
+    const ordered = live.slice().sort((p, q) => (p._layer - q._layer) || ((+p.order || 0) - (+q.order || 0)) || cmpId(p, q));
+    const slots = anchorSlots(ordered.length);
+    ordered.forEach((w, i) => { const h = HINT_XY[w.map_hint] || slots[i]; w._ax = h[0] * MW; w._ay = h[1] * MH; });
+    const rnd = mulberry32(hashStr(AR.map(a => a.id).join("|")));
+    const cities = [];
+    ordered.forEach(w => {
+      const as = w.areas.slice().sort((p, q) => (p._layer - q._layer) || cmpId(p, q));
+      const k = as.length, rows = k <= 2 ? 1 : 2, cols = Math.ceil(k / rows);
+      as.forEach((a, i) => {
+        const col = Math.floor(i / rows), row = i % rows;
+        a._x = w._ax + (col - (cols - 1) / 2) * 175 + (rnd() - 0.5) * 30;
+        a._y = w._ay + (row - (rows - 1) / 2) * 160 + (col % 2 ? 26 : -12) + (rnd() - 0.5) * 30;
+        cities.push(a);
+      });
+    });
+    const edges = areaEdges();
+    const cfont = "600 17px " + FONT_CHART;
+    cities.forEach(a => { a._lw = textW(a.title, cfont) / 2 + 12; });
+    for (let it = 0; it < 420; it++) {
+      for (let i = 0; i < cities.length; i++) for (let j = i + 1; j < cities.length; j++) {
+        const p = cities[i], q = cities[j];
+        let dx = q._x - p._x, dy = q._y - p._y;
+        const d = Math.hypot(dx, dy) || 0.01, min = p.ws === q.ws ? 168 : 228;
+        if (d < min) { const push = (min - d) * 0.3; dx /= d; dy /= d; p._x -= dx * push; p._y -= dy * push; q._x += dx * push; q._y += dy * push; }
+        const bp = cityBox(p), bq = cityBox(q);
+        const ox = Math.min(bp.x1, bq.x1) - Math.max(bp.x0, bq.x0), oy = Math.min(bp.y1, bq.y1) - Math.max(bp.y0, bq.y0);
+        if (ox > 0 && oy > 0) {
+          if (ox < oy * 1.2) { const s = (q._x >= p._x ? 1 : -1) * (ox / 2 + 1) * 0.5; p._x -= s; q._x += s; }
+          else { const s = (q._y >= p._y ? 1 : -1) * (oy / 2 + 1) * 0.5; p._y -= s; q._y += s; }
+        }
+      }
+      cities.forEach(c => { c._x += (c.ws._ax - c._x) * 0.012; c._y += (c.ws._ay - c._y) * 0.012; });
+      edges.forEach(e => { const p = e.from, q = e.to; if (p._x === undefined || q._x === undefined) return; const kx = (q._x - p._x) * 0.0012, ky = (q._y - p._y) * 0.0012; p._x += kx; p._y += ky; q._x -= kx; q._y -= ky; });
+      cities.forEach(c => {
+        c._x = Math.max(120, Math.min(MW - 120, c._x)); c._y = Math.max(105, Math.min(MH - 120, c._y));
+        if (c._x < CART.x + CART.w + 70 && c._y > CART.y - 75) c._y = CART.y - 75;
+        const rx = c._x - ROSE.x, ry = c._y - ROSE.y, rd = Math.hypot(rx, ry) || 1;
+        if (rd < 150) { c._x = ROSE.x + rx / rd * 150; c._y = ROSE.y + ry / rd * 150; }
+      });
+    }
+    return { cities, edges, ordered };
+  }
+  /* Each territory's name goes on its own land where it covers the fewest towns and other names, near the middle of its towns. A long name in a crowded chart steps down a size. */
+  function computeLabels(S) {
+    const towns = WORLD.cities.map(cityBox);
+    const fixed = [{ x0: CART.x - 12, x1: CART.x + CART.w + 12, y0: CART.y - 12, y1: CART.y + CART.h + 12 }, { x0: ROSE.x - 84, x1: ROSE.x + 84, y0: ROSE.y - 98, y1: ROSE.y + 82 }];
+    const overlap = (b, list) => { let sum = 0; for (let i = 0; i < list.length; i++) { const o = list[i], w = Math.min(b.x1, o.x1) - Math.max(b.x0, o.x0), h = Math.min(b.y1, o.y1) - Math.max(b.y0, o.y0); if (w > 0 && h > 0) sum += w * h; } return sum; };
+    const landOf = (x, y) => {
+      const cx = Math.floor(x / S.CELL), cy = Math.floor(y / S.CELL);
+      let best = 1e12, r = -1;
+      for (let gy = cy - 1; gy <= cy + 1; gy++) for (let gx = cx - 1; gx <= cx + 1; gx++) {
+        if (gx < 0 || gy < 0 || gx >= S.gw || gy >= S.gh) continue;
+        S.grid[gy * S.gw + gx].forEach(k => { const sd = S.seeds[k], d = (sd[0] - x) * (sd[0] - x) + (sd[1] - y) * (sd[1] - y); if (d < best) { best = d; r = sd[2]; } });
+      }
+      return best < 68 * 68 ? r : -1;
+    };
+    const placed = [], out = [];
+    WORLD.ordered.forEach(w => {
+      const cs = w.areas.filter(a => a._x !== undefined); if (!cs.length) return;
+      const text = w.title.toUpperCase(), words = text.split(/\s+/);
+      const cx = cs.reduce((sum, a) => sum + a._x, 0) / cs.length, cy = cs.reduce((sum, a) => sum + a._y, 0) / cs.length;
+      const xa = Math.min(...cs.map(a => a._x)) - 150, xb = Math.max(...cs.map(a => a._x)) + 150;
+      const ya = Math.min(...cs.map(a => a._y)) - 120, yb = Math.max(...cs.map(a => a._y)) + 130;
+      const variants = [[text]];
+      if (words.length > 1) {
+        let bi = 1, bd = Infinity;
+        for (let i = 1; i < words.length; i++) { const d = Math.abs(words.slice(0, i).join(" ").length - words.slice(i).join(" ").length); if (d < bd) { bd = d; bi = i; } }
+        variants.push([words.slice(0, bi).join(" "), words.slice(bi).join(" ")]);
+      }
+      let best = null;
+      variants.forEach((lines, vi) => [25, 21, 18].forEach((fs, si) => {
+        const lw = lines.map(l => textW(l, "600 " + fs + "px " + FONT_CHART) + l.length * fs * 0.2), tw = Math.max(...lw), lh = fs * 1.2, H = (lines.length - 1) * lh;
+        for (let y = ya; y <= yb; y += 12) {
+          if (y < 58 || y + H > MH - 34) continue;
+          for (let x = xa; x <= xb; x += 20) {
+            const xx = Math.max(tw / 2 + 46, Math.min(MW - tw / 2 - 46, x)), b = { x0: xx - tw / 2, x1: xx + tw / 2, y0: y - fs, y1: y + H + 6 };
+            let on = 0, n = 0;
+            lines.forEach((l, li) => { const yy = y + li * lh - fs * 0.35; for (let k = 0; k < 5; k++, n++) if (landOf(xx - lw[li] / 2 + lw[li] * (k + 0.5) / 5, yy) === w._idx) on++; });
+            const cost = 8 * overlap(b, towns) + 20 * overlap(b, placed) + 8 * overlap(b, fixed) + 1500 * (1 - on / n) + 1.1 * Math.hypot(xx - cx, (y + H / 2 - cy) * 1.4) + 420 * si + 720 * vi;
+            if (!best || cost < best.cost) best = { x: xx, y, b, cost, fs, lines, lh };
+          }
+        }
+      }));
+      placed.push(best.b);
+      out.push({ ws: w, x: best.x, y: best.y, text, b: best.b, fs: best.fs, lines: best.lines, lh: best.lh });
+    });
+    return out;
+  }
+
+  /* Land is grown from seeds round each town; a pixel is land when it is close enough to its nearest seed. The same field is sampled coarsely for the chart and finely for a territory. */
+  function buildSeeds(cities, isle) {
+    const rnd = mulberry32(hashStr("coast|" + cities.map(c => c.id).join(",")));
+    const seeds = [];
+    cities.forEach(a => {
+      const ri = a.ws._idx;
+      seeds.push([a._x, a._y, ri, 1]);
+      for (let i = 0; i < 8; i++) { const ang = i / 8 * Math.PI * 2 + rnd() * 0.7, rad = 52 + rnd() * 36; seeds.push([a._x + Math.cos(ang) * rad, a._y + Math.sin(ang) * rad * 0.8, ri, 1]); }
+    });
+    for (let i = 0; i < cities.length; i++) for (let j = i + 1; j < cities.length; j++) {
+      const p = cities[i], q = cities[j];
+      if (p.ws !== q.ws || Math.hypot(p._x - q._x, p._y - q._y) > 360) continue;
+      for (let s = 1; s <= 2; s++) { const t = s / 3; seeds.push([p._x + (q._x - p._x) * t + (rnd() - 0.5) * 34, p._y + (q._y - p._y) * t + (rnd() - 0.5) * 34, p.ws._idx, 1]); }
+    }
+    if (isle) {
+      const r2 = mulberry32(hashStr("isle"));
+      seeds.push([isle.x, isle.y, ISLE, 0.56]);
+      for (let i = 0; i < 6; i++) { const ang = i / 6 * Math.PI * 2 + r2() * 0.6; seeds.push([isle.x + Math.cos(ang) * (16 + r2() * 8), isle.y + 6 + Math.sin(ang) * (11 + r2() * 6), ISLE, 0.42]); }
+    }
+    const CELL = 150, gw = Math.ceil(MW / CELL), gh = Math.ceil(MH / CELL);
+    const grid = Array.from({ length: gw * gh }, () => []);
+    seeds.forEach((s, k) => { const cx = Math.min(gw - 1, Math.max(0, Math.floor(s[0] / CELL))), cy = Math.min(gh - 1, Math.max(0, Math.floor(s[1] / CELL))); grid[cy * gw + cx].push(k); });
+    return { seeds, grid, gw, gh, CELL, noise: makeNoise(hashStr("relief")), grain: makeNoise(hashStr("grain")) };
+  }
+  function fieldsFor(S, vx, vy, scale, w, h) {
+    const region = new Int8Array(w * h), sd = new Float32Array(w * h), tex = new Float32Array(w * h);
+    const seeds = S.seeds, grid = S.grid, gw = S.gw, gh = S.gh, CELL = S.CELL, noise = S.noise, grain = S.grain, R0 = 70, fine = scale > 0.8;
+    for (let py = 0; py < h; py++) {
+      const y = vy + (py + 0.5) / scale, cy = Math.floor(y / CELL);
+      for (let px = 0; px < w; px++) {
+        const x = vx + (px + 0.5) / scale, cx = Math.floor(x / CELL);
+        let best = 1e12, bi = -1;
+        for (let gy = cy - 1; gy <= cy + 1; gy++) {
+          if (gy < 0 || gy >= gh) continue;
+          for (let gx = cx - 1; gx <= cx + 1; gx++) {
+            if (gx < 0 || gx >= gw) continue;
+            const cell = grid[gy * gw + gx];
+            for (let n = 0; n < cell.length; n++) { const s = seeds[cell[n]], dx = x - s[0], dy = y - s[1], dd = dx * dx + dy * dy; if (dd < best) { best = dd; bi = cell[n]; } }
+          }
+        }
+        const i = py * w + px;
+        let e = 999;
+        if (bi >= 0) e = Math.sqrt(best) - R0 * seeds[bi][3] * (0.62 + 0.8 * noise(x * 0.0065, y * 0.0065));
+        sd[i] = e;
+        if (e < 0) { region[i] = seeds[bi][2]; tex[i] = noise(x * 0.035 + 31.7, y * 0.035 + 11.3) + (fine ? (grain(x * 0.12, y * 0.12) - 0.5) * 0.6 : 0); }
+        else region[i] = -1;
+      }
+    }
+    return { w, h, region, sd, tex, scale };
+  }
+  function readPalette() {
+    const cs = getComputedStyle(document.documentElement), g = n => parseColor(cs.getPropertyValue(n));
+    return { sea: g("--sea"), shoal: g("--shoal"), depth: g("--depth"), ink: g("--ink"), rock: g("--rock"), washes: [1, 2, 3, 4, 5, 6].map(i => g("--wash-" + i)) };
+  }
+  /* focus: the territory index to keep in full colour; the rest fade towards the sea (null on the chart). */
+  function paintFields(f, pal, focus) {
+    const img = new ImageData(f.w, f.h), px = img.data, W = f.w, H = f.h, bands = [9, 21, 36], hw = 0.45 / f.scale, c = [0, 0, 0];
+    const mix = (t, a) => { c[0] += (t[0] - c[0]) * a; c[1] += (t[1] - c[1]) * a; c[2] += (t[2] - c[2]) * a; };
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = y * W + x, o = i * 4, r = f.region[i], e = f.sd[i];
+        if (r < 0) {
+          const k = e < 14 ? 0 : e < 22 ? (e - 14) / 8 : 1;
+          c[0] = pal.shoal[0] + (pal.sea[0] - pal.shoal[0]) * k; c[1] = pal.shoal[1] + (pal.sea[1] - pal.shoal[1]) * k; c[2] = pal.shoal[2] + (pal.sea[2] - pal.shoal[2]) * k;
+          for (let b = 0; b < 3; b++) { const dd = Math.abs(e - bands[b]); if (dd < hw) mix(pal.depth, (0.55 - b * 0.13) * (1 - dd / hw)); }
+        } else {
+          const isle = r === ISLE, base = isle ? pal.rock : pal.washes[r % pal.washes.length], t = 1 + (f.tex[i] - 0.5) * (isle ? 0.18 : 0.08);
+          c[0] = base[0] * t; c[1] = base[1] * t; c[2] = base[2] * t;
+          const L = x > 0 ? f.region[i - 1] : -1, R = x < W - 1 ? f.region[i + 1] : -1, U = y > 0 ? f.region[i - W] : -1, B = y < H - 1 ? f.region[i + W] : -1;
+          const faded = focus !== null && r !== focus;
+          let edge = false;
+          if (L < 0 || R < 0 || U < 0 || B < 0) mix(pal.ink, faded ? 0.5 : 1);
+          else if (L !== r || R !== r || U !== r || B !== r) {
+            if (focus !== null && (r === focus || L === focus || R === focus || U === focus || B === focus)) { mix(pal.ink, 0.8); edge = true; }
+            else if ((L < r || U < r || R < r || B < r) && (((x % 6) < 3) !== ((y % 6) < 3))) mix(pal.ink, faded ? 0.35 : 0.6);
+          } else if (e > -7) mix(pal.ink, 0.1 * (1 + e / 7));
+          if (faded && !edge) mix(pal.sea, 0.55);
+        }
+        px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255;
+      }
+    }
+    return img;
+  }
+  function toCanvas(img, cv) { cv = cv || document.createElement("canvas"); cv.width = img.width; cv.height = img.height; cv.getContext("2d").putImageData(img, 0, 0); return cv; }
+  function blit(cv, stage, off) {
+    if (!off) return;
+    const cw = stage.clientWidth, ch = stage.clientHeight; if (!cw || !ch) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr);
+    const ctx = cv.getContext("2d");
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(off, 0, 0, cv.width, cv.height);
+  }
+  function paintWorld() { if (!WORLD) return; WORLD.off = toCanvas(paintFields(WORLD.fields, readPalette(), null), WORLD.off); drawTerrain(); }
+  function drawTerrain() { if (WORLD) { blit($("#terrain"), $("#stage"), WORLD.off); setHover(hoverWs, true); } }
+  function buildMasks() {
+    const f = WORLD.fields;
+    WORLD.masks = new Map();
+    WS.forEach(w => {
+      const img = new ImageData(f.w, f.h), d = img.data;
+      for (let i = 0; i < f.region.length; i++) if (f.region[i] === w._idx) { const o = i * 4; d[o] = d[o + 1] = d[o + 2] = d[o + 3] = 255; }
+      WORLD.masks.set(w._idx, toCanvas(img));
+    });
+  }
+  let hoverWs = null;
+  function setHover(w, force) {
+    if (w === hoverWs && !force) return;
+    hoverWs = w || null;
+    const cv = $("#hilite"), stage = $("#stage"), cw = stage.clientWidth, ch = stage.clientHeight;
+    $$("#world .region-label").forEach(t => t.classList.toggle("on", !!w && t.getAttribute("data-ws") === w.id));
+    if (!cw || !ch) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1), W = Math.round(cw * dpr), H = Math.round(ch * dpr);
+    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+    const ctx = cv.getContext("2d");
+    ctx.clearRect(0, 0, W, H);
+    if (!w || !WORLD || !WORLD.masks || !WORLD.masks.get(w._idx)) return;
+    const a = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hilite-a"));
+    ctx.globalAlpha = isFinite(a) ? a : 0.3;
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(WORLD.masks.get(w._idx), 0, 0, W, H);
+    ctx.globalAlpha = 1;
+  }
+  function worldPoint(e) { const r = $("#world").getBoundingClientRect(); return [(e.clientX - r.left) / r.width * MW, (e.clientY - r.top) / r.height * MH]; }
+  function wsAt(p) {
+    const f = WORLD && WORLD.fields; if (!f) return null;
+    const px = Math.floor(p[0] * f.scale), py = Math.floor(p[1] * f.scale);
+    if (px < 0 || py < 0 || px >= f.w || py >= f.h) return null;
+    const r = f.region[py * f.w + px];
+    return r >= 0 && r < WS.length ? WS[r] : null;
+  }
+  function wsTip(w) {
+    const ts = MAPPED.filter(t => t.ws === w && match(t)), st = stats(ts);
+    return `<b>${esc(w.title)}</b><div class="tbar">${sbar(st)}</div><div>${w.areas.length} area${w.areas.length === 1 ? "" : "s"} · ${st.built} of ${st.n} tasks built</div><div class="muted">Click to zoom in</div>`;
+  }
+
+  /* Graticule every `step` world units, drawn in a W x H design space that shows the world from (ox, oy) at zoom z. */
+  function chartFrame(W, H, step, ox, oy, z) {
+    const i = 14, bw = 6, sp = 40, w = W - 2 * i, h = H - 2 * i, o = i + bw;
+    let bars = "";
+    for (let x = i, k = 0; x < i + w - 0.1; x += sp, k++) if (k % 2 === 0) { const ww = Math.min(sp, i + w - x); bars += `<rect x="${x}" y="${i}" width="${ww}" height="${bw}"/><rect x="${x}" y="${i + h - bw}" width="${ww}" height="${bw}"/>`; }
+    for (let y = i, k = 0; y < i + h - 0.1; y += sp, k++) if (k % 2 === 0) { const hh = Math.min(sp, i + h - y); bars += `<rect x="${i}" y="${y}" width="${bw}" height="${hh}"/><rect x="${i + w - bw}" y="${y}" width="${bw}" height="${hh}"/>`; }
+    let g = "";
+    for (let x = Math.ceil(ox / step) * step; (x - ox) * z < W; x += step) { const X = (x - ox) * z; if (X > o + 4 && X < W - o - 4) g += `M${f1(X)},${o}V${H - o}`; }
+    for (let y = Math.ceil(oy / step) * step; (y - oy) * z < H; y += step) { const Y = (y - oy) * z; if (Y > o + 4 && Y < H - o - 4) g += `M${o},${f1(Y)}H${W - o}`; }
+    return { grid: `<path class="w-grat" d="${g}"/>`, border: `<path class="w-margin" fill-rule="evenodd" d="M0,0H${W}V${H}H0Z M${o},${o}V${H - o}H${W - o}V${o}Z"/><g class="w-bars">${bars}</g><rect class="w-frame" x="${i}" y="${i}" width="${w}" height="${h}"/><rect class="w-frame" x="${o}" y="${o}" width="${w - 2 * bw}" height="${h - 2 * bw}"/>` };
+  }
+  function rose(cx, cy) {
+    let ticks = "";
+    for (let d = 0; d < 360; d += 5) { const a = (d - 90) * Math.PI / 180, r2 = d % 30 === 0 ? 52 : d % 10 === 0 ? 57 : 60; ticks += `M${f1(cx + Math.cos(a) * 64)},${f1(cy + Math.sin(a) * 64)}L${f1(cx + Math.cos(a) * r2)},${f1(cy + Math.sin(a) * r2)}`; }
+    const pts = [];
+    for (let k = 0; k < 8; k++) { const a = (k * 45 - 90) * Math.PI / 180, r = k % 2 === 0 ? 46 : 9; pts.push(f1(cx + Math.cos(a) * r) + "," + f1(cy + Math.sin(a) * r)); }
+    return `<g class="rose" aria-hidden="true"><circle cx="${cx}" cy="${cy}" r="64" stroke-width="1.2"/><circle cx="${cx}" cy="${cy}" r="50" stroke-width=".8"/><path d="${ticks}" stroke-width="1"/><polygon class="star" points="${pts.join(" ")}"/><circle class="hub" cx="${cx}" cy="${cy}" r="3.5" stroke-width="1.2"/><text x="${cx}" y="${cy - 72}">N</text></g>`;
+  }
+  function cartouche() {
+    const c = CART, n = TK.length;
+    const l3 = `Drawn from ${n} task note${n === 1 ? "" : "s"} · ${fmtDate(D.meta.generated)}`;
+    const l4 = D.meta.commit ? `Commit ${D.meta.commit} · one town per area` : "One town per area · one house per task";
+    return `<g class="cart" transform="translate(${c.x},${c.y})"><rect class="box" width="${c.w}" height="${c.h}" rx="2"/><rect class="inner" x="5" y="5" width="${c.w - 10}" height="${c.h - 10}"/><text class="t1" x="${c.w / 2}" y="40">${esc((D.meta.title || "FPGA Team Atlas").toUpperCase())}</text><text class="t2" x="${c.w / 2}" y="63">Chart of the team roadmap</text><text class="t3" x="${c.w / 2}" y="85">${esc(l3)}</text><text class="t3" x="${c.w / 2}" y="103">${esc(l4)}</text></g>`;
+  }
+  function towards(x, y, tx, ty, r) { const dx = tx - x, dy = ty - y, L = Math.hypot(dx, dy) || 1; return [x + dx / L * r, y + dy / L * r]; }
+  /* P maps an area to its position in the current drawing; rad gives its drawn radius. */
+  function roadSvg(e, P, rad, extra) {
+    const p = e.from, q = e.to, canon = p.id < q.id, pp = P(p), qq = P(q), aa = canon ? pp : qq, bb = canon ? qq : pp;
+    const dx = bb[0] - aa[0], dy = bb[1] - aa[1], L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+    const bend = (canon ? 1 : -1) * Math.min(70, 0.17 * L);
+    const cx = (aa[0] + bb[0]) / 2 + nx * bend, cy = (aa[1] + bb[1]) / 2 + ny * bend;
+    const s = towards(pp[0], pp[1], cx, cy, rad(p) + 5), t = towards(qq[0], qq[1], cx, cy, rad(q) + 9);
+    const u = 0.56, mu = 1 - u;
+    const bx = mu * mu * s[0] + 2 * mu * u * cx + u * u * t[0], by = mu * mu * s[1] + 2 * mu * u * cy + u * u * t[1];
+    const ang = Math.atan2(2 * mu * (cy - s[1]) + 2 * u * (t[1] - cy), 2 * mu * (cx - s[0]) + 2 * u * (t[0] - cx)) * 180 / Math.PI;
+    const done = e.pairs.every(pr => COMPLETE(pr[0].status)), n = e.pairs.length;
+    const label = q.title + " needs " + p.title + ": " + n + " link" + (n > 1 ? "s" : "") + (done ? ", all finished" : ", some still open");
+    return `<g class="road${done ? "" : " open"}${extra || ""}" data-from="${esc(p.id)}" data-to="${esc(q.id)}" data-tip="${esc(label)}"><path class="trk" d="M${f1(s[0])},${f1(s[1])} Q${f1(cx)},${f1(cy)} ${f1(t[0])},${f1(t[1])}"/><path class="chev" d="M-7,-6 L2,0 L-7,6" transform="translate(${f1(bx)},${f1(by)}) rotate(${f1(ang)})"/></g>`;
+  }
+  /* The town disc, its ring of tasks by stage, and fog for an area with no tasks yet. */
+  function cityInner(a, r, rw, fogId) {
+    const unscoped = !a.tasks.length, st = stats(a.tasks.filter(match));
+    let ring = "";
+    if (!unscoped) {
+      const C = 2 * Math.PI * r;
+      ring = `<circle class="track" r="${f1(r)}" stroke-width="${rw}"/>`;
+      let off = 0;
+      if (st.n) ["adopted", "done", "review", "in-progress"].forEach(s => {
+        const v = st.c[s]; if (!v) return;
+        const len = C * v / st.n;
+        ring += `<circle class="seg seg-${s}" r="${f1(r)}" stroke-width="${rw}" stroke-dasharray="${f1(Math.max(1, len - 2))} ${f1(C)}" stroke-dashoffset="${f1(-off)}" transform="rotate(-90)"/>`;
+        off += len;
+      });
+    }
+    const sc = ((r - 6) / 11).toFixed(3);
+    const glyph = `<g transform="scale(${sc})"><path class="glyph" d="M-8,8V-5H-5V-2H-2V-5H2V-2H5V-5H8V8Z"/><path class="door" d="M-2,8V3.5A2,2 0 0 1 2,3.5V8Z"/></g>`;
+    let fog = "";
+    if (unscoped) {
+      const rr = mulberry32(hashStr("fog" + a.id)), k = r / 26; let c = "";
+      for (let i = 0; i < 11; i++) { const ang = rr() * Math.PI * 2, rad = rr() * 46 * k; c += `<circle cx="${f1(Math.cos(ang) * rad)}" cy="${f1(Math.sin(ang) * rad * 0.7)}" r="${f1((30 + rr() * 30) * k)}"/>`; }
+      fog = `<g class="fog" filter="url(#${fogId})">${c}</g>`;
+    }
+    return `<circle class="hit" r="${f1(r + 16)}"/>${ring}<circle class="disc" r="${f1(r - 6)}"/>${glyph}${fog}`;
+  }
+  function townSub(a) {
+    const st = stats(a.tasks.filter(match));
+    return !a.tasks.length ? "Not yet broken into tasks" : st.n === 0 ? "No tasks match the filters" : `${st.built} of ${st.n} built`;
+  }
+  function citySvg(a) {
+    const r = cityR(a), unscoped = !a.tasks.length, sub = townSub(a), dim = !unscoped && !a.tasks.some(match);
+    return `<g class="town${unscoped ? " unscoped" : ""}${dim ? " dim" : ""}" data-id="${esc(a.id)}" transform="translate(${f1(a._x)},${f1(a._y)})" style="--halo:var(--wash-${a.ws._ci})" tabindex="0" role="button" aria-label="${esc(a.title + ": " + sub + ". Zoom in to " + a.ws.title + ".")}">${cityInner(a, r, 7, "fogw")}<text class="c-label" y="${f1(r + 24)}">${esc(a.title)}</text><text class="${unscoped ? "c-fog" : "c-sub"}" y="${f1(r + 42)}">${esc(sub)}</text></g>`;
+  }
+  function cityTip(a, hint) {
+    const head = `<b>${esc(a.title)}</b> <span class="muted">· ${esc(a.ws ? a.ws.title : "")}</span>`;
+    if (!a.tasks.length) return `${head}<div>${esc(a.summary || "")}</div><div class="muted">Not yet broken into tasks.</div><div class="muted">${esc(hint)}</div>`;
+    const ts = a.tasks.filter(match), st = stats(ts), ready = ts.filter(isReady).length, waiting = ts.filter(isWaiting).length;
+    const counts = BAR_ORDER.filter(s => st.c[s]).map(s => st.c[s] + " " + STAGE_LABEL[s].toLowerCase()).join(" · ");
+    const flags = [ready ? ready + " ready to start" : "", waiting ? waiting + " waiting on a prerequisite" : ""].filter(Boolean).join(" · ");
+    return `${head}<div class="tbar">${sbar(st)}</div><div>${counts || "No tasks match the filters"}</div>${flags ? `<div class="muted">${flags}</div>` : ""}<div class="muted">${esc(hint)}</div>`;
+  }
+  function renderWorld() {
+    if (!WORLD) return;
+    const svg = $("#world");
+    const labels = WORLD.labels.map(l => `<text class="region-label" data-ws="${esc(l.ws.id)}" x="${f1(l.x)}" y="${f1(l.y)}" style="fill:var(--ws-${l.ws._ci});--halo:var(--wash-${l.ws._ci})${l.fs !== 25 ? ";font-size:" + l.fs + "px" : ""}" tabindex="0" role="button" aria-label="${esc(l.ws.title + ": zoom in to the territory")}">${l.lines.map((ln, i) => `<tspan x="${f1(l.x)}"${i ? ` dy="${f1(l.lh)}"` : ""}>${esc(ln)}</tspan>`).join("")}</text>`).join("");
+    const fr = chartFrame(MW, MH, 200, 0, 0, 1);
+    svg.innerHTML = `<defs>${fogFilter("fogw")}</defs>${fr.grid}${eggsSvg(MW, MH, 0, 0, 1)}${labels}<g class="roads">${WORLD.edges.map(e => roadSvg(e, a => [a._x, a._y], cityR, "")).join("")}</g><g class="cities">${WORLD.cities.map(citySvg).join("")}</g>${fr.border}${rose(ROSE.x, ROSE.y)}${cartouche()}`;
+    $$(".town", svg).forEach(g => {
+      const a = byId.get(g.getAttribute("data-id"));
+      g.addEventListener("pointerenter", e => { focusRoads(svg, a.id); showTip(cityTip(a, "Click to zoom in"), e); });
+      g.addEventListener("pointerleave", () => { focusRoads(svg, null); hideTip(); });
+      g.addEventListener("focus", () => { focusRoads(svg, a.id); setHover(a.ws); });
+      g.addEventListener("blur", () => { focusRoads(svg, null); setHover(null); });
+    });
+    $$(".region-label", svg).forEach(t => {
+      const w = byId.get(t.getAttribute("data-ws"));
+      t.addEventListener("focus", () => setHover(w));
+      t.addEventListener("blur", () => setHover(null));
+    });
+    setHover(hoverWs, true);
+  }
+  function focusRoads(svg, id) {
+    const g = $(".roads", svg); if (!g) return;
+    g.classList.toggle("focus", !!id);
+    $$(".road", g).forEach(r => r.classList.toggle("hl", !!id && (r.getAttribute("data-from") === id || r.getAttribute("data-to") === id)));
+  }
+  function initWorldEvents() {
+    const svg = $("#world");
+    svg.addEventListener("click", e => {
+      if (e.target.closest(".egg")) return;
+      const c = e.target.closest(".town");
+      if (c) { const a = byId.get(c.getAttribute("data-id")); openRegion(a.ws, a); return; }
+      const l = e.target.closest(".region-label");
+      if (l) { openRegion(byId.get(l.getAttribute("data-ws"))); return; }
+      const w = wsAt(worldPoint(e)); if (w) openRegion(w);
+    });
+    svg.addEventListener("keydown", e => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const c = e.target.closest(".town"), l = e.target.closest(".region-label");
+      if (c) { e.preventDefault(); const a = byId.get(c.getAttribute("data-id")); openRegion(a.ws, a); }
+      else if (l) { e.preventDefault(); openRegion(byId.get(l.getAttribute("data-ws"))); }
+    });
+    svg.addEventListener("pointermove", e => {
+      if (e.target.closest(".egg,.road")) { setHover(null); svg.classList.remove("over-land"); return; }
+      const c = e.target.closest(".town");
+      if (c) { setHover(byId.get(c.getAttribute("data-id")).ws); return; }
+      const l = e.target.closest(".region-label"), w = l ? byId.get(l.getAttribute("data-ws")) : wsAt(worldPoint(e));
+      setHover(w);
+      svg.classList.toggle("over-land", !!w);
+      if (w) showTip(wsTip(w), e); else hideTip();
+    });
+    svg.addEventListener("pointerleave", () => { setHover(null); hideTip(); });
+  }
+  function renderKey() {
+    const r = 11, C = 2 * Math.PI * r, parts = [["adopted", .2], ["done", .2], ["review", .15], ["in-progress", .2]];
+    let off = 0, segs = "";
+    parts.forEach(([s, v]) => { const len = C * v; segs += `<circle class="seg seg-${s}" r="${r}" stroke-dasharray="${f1(len - 1.5)} ${f1(C)}" stroke-dashoffset="${f1(-off)}" transform="rotate(-90)" fill="none" stroke-width="5"/>`; off += len; });
+    $("#key").innerHTML = `<span class="k"><strong>Click a territory or town to zoom in.</strong></span><span class="k"><svg width="30" height="30" viewBox="-15 -15 30 30" aria-hidden="true"><circle r="${r}" fill="none" stroke="var(--st-planned)" stroke-width="5"/>${segs}</svg>Ring: an area's tasks by stage</span><span class="k legend">${legendHtml()}</span><span class="k"><svg width="46" height="12" aria-hidden="true"><path d="M3,6H43" class="key-trk"/></svg>Prerequisite finished</span><span class="k"><svg width="46" height="12" aria-hidden="true"><path d="M3,6H43" class="key-trk open"/></svg>Prerequisite still open</span><span class="k"><i class="sw fogsw"></i>Fog: not yet broken into tasks</span><span class="k">West to east: earlier to later in the order work unlocks</span>`;
+  }
+
+  /* ---------------- things in the sea ---------------- */
+  const EGG_SPOTS = [[1405, 175], [195, 175], [800, 95], [1440, 560], [150, 650], [640, 920], [1050, 920], [400, 115], [1150, 110]];
+  function chooseEggs(S, labels) {
+    const clear = (x, y) => S.seeds.every(s => Math.hypot(s[0] - x, s[1] - y) > 165)
+      && !(x < CART.x + CART.w + 80 && y > CART.y - 80)
+      && Math.hypot(x - ROSE.x, y - ROSE.y) > 190
+      && labels.every(l => x < l.b.x0 - 80 || x > l.b.x1 + 80 || y < l.b.y0 - 60 || y > l.b.y1 + 60);
+    const ok = EGG_SPOTS.filter(p => clear(p[0], p[1]));
+    const isle = ok.length ? { x: ok[0][0], y: ok[0][1] } : null;
+    const sp = ok.slice(1).find(p => !isle || Math.hypot(p[0] - isle.x, p[1] - isle.y) >= 320);
+    return { isle, serpent: sp ? { x: sp[0], y: sp[1] } : null };
+  }
+  function volcanoSvg(p, k) {
+    const label = "Mt Timing Closure. The soundings are worst negative slack, in nanoseconds. Nobody has reached the summit on the first run.";
+    let hach = "";
+    for (let j = 0; j <= 8; j++) {
+      const tx = -5.5 + j * 1.375, ty = -17, bx = -25 + j * 6.25, by = 11, a = j >= 5 ? 0.3 : 0.5, b = j >= 5 ? 0.92 : 0.82;
+      hach += `M${f1(tx + (bx - tx) * a)},${f1(ty + (by - ty) * a)}L${f1(tx + (bx - tx) * b)},${f1(ty + (by - ty) * b)}`;
+    }
+    return `<g class="egg volcano" transform="translate(${f1(p[0])},${f1(p[1])}) scale(${k.toFixed(3)})" data-tip="${esc(label)}" role="img" aria-label="${esc(label)}"><circle class="egg-hit" r="66"/><g class="smoke"><circle cx="1" cy="-24" r="4.8"/><circle cx="1" cy="-24" r="4.8"/><circle cx="1" cy="-24" r="4.8"/></g><path class="cone" d="M-28,11C-21,6 -13,-8 -7,-19L7,-19C13,-8 21,6 28,11C14,15.5 -14,15.5 -28,11Z"/><path class="cone-sh" d="M2.5,-19L7,-19C13,-8 21,6 28,11C21,13.4 12,14.6 5,14.9C9,4 7,-9 2.5,-19Z"/><path class="hach" d="${hach}"/><ellipse class="crater" cx="0" cy="-19" rx="7.2" ry="2.4"/><path class="lava" d="M-2.4,-17.5C-3.4,-11 -7.6,-5 -6.4,3.5"/><text class="sound" x="-80" y="-20">−0.042</text><text class="sound" x="78" y="-26">−0.017</text><text class="sound" x="-76" y="32">−0.003</text><text class="sound" x="74" y="36">−0.061</text><text class="elabel" y="64">Mt Timing Closure</text></g>`;
+  }
+  function serpentSvg(p, k) {
+    const label = "Here be metastability. Cross with two flip-flops.";
+    const body = "M-46,10C-49,-4 -47,-17 -38,-21M-24,10C-22,-11 -6,-11 -4,10M8,10C10,-8 22,-8 24,10M33,10C35,-3 46,-6 47,-1C48,3 44,5 42,2";
+    let waves = "M-62,9"; for (let i = 0; i < 12; i++) waves += "q5,-3.2 10,0";
+    return `<g class="egg serpent" transform="translate(${f1(p[0])},${f1(p[1])}) scale(${k.toFixed(3)})" data-tip="${esc(label)}" role="img" aria-label="${esc(label)}"><circle class="egg-hit" r="58"/><g class="bob"><path class="sp-out" d="${body}"/><path class="sp-body" d="${body}"/><path class="sp-fin" d="M-17,-6L-14,-14L-10,-6ZM12,-4L15,-11L18,-4Z"/><path class="sp-head" d="M-42,-18C-41,-26 -31,-30 -21,-26C-19,-25 -19,-22 -22,-21C-28,-19 -35,-15 -42,-18Z"/><path class="sp-fin" d="M-39,-24L-44,-31L-35,-27Z"/><circle class="sp-eye" cx="-31" cy="-24" r="1.7"/></g><rect class="sp-sea" x="-64" y="9" width="128" height="8"/><path class="waves" d="${waves}"/><text class="elabel" y="34">Here be metastability</text></g>`;
+  }
+  /* W x H design space showing the world from (ox, oy) at zoom z. */
+  function eggsSvg(W, H, ox, oy, z) {
+    const E = WORLD.eggs; if (!E) return "";
+    const at = q => [(q.x - ox) * z, (q.y - oy) * z], inside = q => q[0] > -70 && q[0] < W + 70 && q[1] > -70 && q[1] < H + 70;
+    let s = "";
+    if (E.isle) { const q = at(E.isle); if (inside(q)) s += volcanoSvg(q, z); }
+    if (E.serpent) { const q = at(E.serpent); if (inside(q)) s += serpentSvg(q, Math.min(z, 1.3)); }
+    return s;
+  }
+
+  /* ---------------- territory view ---------------- */
+  const regionCache = new Map();
+  function regionBox(w) {
+    const cs = w.areas.filter(a => a._x !== undefined);
+    let x0 = Math.min(...cs.map(a => a._x)) - 210, x1 = Math.max(...cs.map(a => a._x)) + 210;
+    let y0 = Math.min(...cs.map(a => a._y)) - 175, y1 = Math.max(...cs.map(a => a._y)) + 175;
+    let bw = x1 - x0, bh = y1 - y0;
+    const ar = MW / MH;
+    if (bw / bh < ar) { const nw = bh * ar; x0 -= (nw - bw) / 2; bw = nw; } else { const nh = bw / ar; y0 -= (nh - bh) / 2; bh = nh; }
+    if (bw > MW) { bw = MW; bh = MH; }
+    x0 = Math.max(0, Math.min(MW - bw, x0)); y0 = Math.max(0, Math.min(MH - bh, y0));
+    return { x: x0, y: y0, w: bw, h: bh, z: MW / bw, k: RW / bw };
+  }
+  function regionFor(w) {
+    let R = regionCache.get(w.id);
+    if (!R) { R = { ws: w, B: regionBox(w), fields: null, off: null }; regionCache.set(w.id, R); }
+    return R;
+  }
+  const RP = (R, x, y) => [(x - R.B.x) * R.B.k, (y - R.B.y) * R.B.k];
+  /* The transform origin that makes the chart zoom exactly onto box B. */
+  function zoomOriginFor(B) {
+    if (B.z < 1.05) return null;
+    const cx = B.x + B.w / 2, cy = B.y + B.h / 2;
+    return [(B.z * cx - MW / 2) / (B.z - 1) / MW * 100, (B.z * cy - MH / 2) / (B.z - 1) / MH * 100];
+  }
+  function ensureRegionFields(R) {
+    if (R.fields) return;
+    const W = 1000, H = Math.round(W * R.B.h / R.B.w);
+    R.fields = fieldsFor(WORLD.S, R.B.x, R.B.y, W / R.B.w, W, H);
+  }
+  function paintRegion(R) {
+    ensureRegionFields(R);
+    R.off = toCanvas(paintFields(R.fields, readPalette(), R.ws._idx), R.off);
+    blit($("#rterrain"), $("#rstage"), R.off);
+  }
+  /* A town's houses in an arc over it (turned by `turn` radians), two rings deep when there are more than seven. */
+  function clusterPositions(n, r, turn) {
+    const out = [], rings = n > 7 ? [[Math.ceil(n / 2), r + 46], [n - Math.ceil(n / 2), r + 92]] : [[n, r + 46]];
+    rings.forEach(([m, rad]) => {
+      const span = Math.min(220, 42 * (m - 1)) * Math.PI / 180, a0 = -Math.PI / 2 - span / 2 + (turn || 0);
+      for (let i = 0; i < m; i++) { const ang = m === 1 ? a0 + span / 2 : a0 + span * i / (m - 1); out.push([Math.cos(ang) * rad, Math.sin(ang) * rad]); }
+    });
+    return out;
+  }
+  /* Where each task's house goes in a territory, and what the territory's name and signposts must keep clear of.
+     Houses sit in an arc over their town when there's room. A crowded town turns its arc, or failing that puts each
+     house in the free place nearest the top, so no house lands on a neighbour's name or houses. */
+  function territoryLayout(R, mine, ghosts, P, big, small) {
+    if (R.layout) return R.layout;
+    const HR = 22, circles = [], boxes = [];
+    const LF = "600 19px " + FONT_CHART, SF = "400 13px " + FONT_UI, GF = "600 14px " + FONT_CHART;
+    mine.forEach(a => {
+      const all = stats(a.tasks), p = P(a), r = big(a), lw = textW(a.title, LF);
+      const sw = textW(a.tasks.length ? `${all.built} of ${all.n} built` : "Not yet broken into tasks", SF);   // unfiltered, so houses don't move with the filters
+      circles.push([p[0], p[1], r + 5]);
+      boxes.push([p[0] - lw / 2 - 4, p[1] + r + 12, p[0] + lw / 2 + 4, p[1] + r + 34], [p[0] - sw / 2 - 3, p[1] + r + 36, p[0] + sw / 2 + 3, p[1] + r + 53]);
+    });
+    ghosts.forEach(a => {
+      const p = P(a), r = small(a), lw = textW(a.title, GF);
+      circles.push([p[0], p[1], r + 4]);
+      boxes.push([p[0] - lw / 2 - 3, p[1] + r + 5, p[0] + lw / 2 + 3, p[1] + r + 24]);
+    });
+    const bad = (x, y) => {
+      let s = 0;
+      circles.forEach(c => { const d = c[2] + HR - Math.hypot(c[0] - x, c[1] - y); if (d > 0) s += d; });
+      boxes.forEach(b => { const dx = Math.max(b[0] - x, 0, x - b[2]), dy = Math.max(b[1] - y, 0, y - b[3]), d = HR - Math.hypot(dx, dy); if (d > 0) s += d; });
+      if (x < HR + 8 || x > RW - HR - 8 || y < HR + 10 || y > RH - HR - 8) s += 60;
+      return s;
+    };
+    const houses = new Map();
+    mine.filter(a => a.tasks.length).sort((a, b) => (b.tasks.length - a.tasks.length) || cmpId(a, b)).forEach(a => {
+      const p = P(a), r = big(a), n = a.tasks.length;
+      let pick = null;
+      for (const turn of [0, -0.45, 0.45, -0.9, 0.9, -1.4, 1.4]) {
+        const set = clusterPositions(n, r, turn).map(q => [p[0] + q[0], p[1] + q[1]]);
+        if (set.every(q => bad(q[0], q[1]) === 0)) { pick = set; break; }
+      }
+      if (pick) pick.forEach(q => circles.push([q[0], q[1], HR]));
+      else {
+        const slots = [], got = [];
+        for (let k = 0; k < 5; k++) {
+          const rad = r + 46 + k * 46, step = 2 * Math.asin(Math.min(1, (HR + 3) / rad)), m = Math.floor(Math.PI / step);
+          for (let j = -m; j <= m; j++) { const th = j * step; slots.push({ x: p[0] + Math.sin(th) * rad, y: p[1] - Math.cos(th) * rad, k, th, pref: k * 90 + Math.abs(th) * 35 }); }
+        }
+        for (let i = 0; i < n; i++) {
+          let best = null, bc = Infinity;
+          slots.forEach(s => { if (s.used) return; const c = s.pref + 900 * bad(s.x, s.y); if (c < bc) { bc = c; best = s; } });
+          best.used = true; got.push(best); circles.push([best.x, best.y, HR]);
+        }
+        pick = got.sort((s, t) => (s.k - t.k) || (s.th - t.th)).map(s => [s.x, s.y]);   // read inner ring first, left to right
+      }
+      houses.set(a, pick.map(q => [q[0] - p[0], q[1] - p[1]]));
+    });
+    R.layout = { houses, boxes: boxes.concat(circles.map(c => [c[0] - c[2], c[1] - c[2], c[0] + c[2], c[1] + c[2]])) };
+    return R.layout;
+  }
+  function miniBld(t, p) {
+    const st = t.status, ready = isReady(t), wait = isWaiting(t);
+    const label = `${t.id} ${t.title} · ${STAGE_LABEL[st]}${t.owner ? " · " + t.owner : ""}${ready ? " · Ready to start" : wait ? " · Waiting on " + openDeps(t).length : ""}`;
+    const mark = ready ? '<circle class="mb-ready" cx="17" cy="-16" r="5"/>' : wait ? '<circle class="mb-wait" cx="17" cy="-16" r="4.6"/>' : "";
+    return `<g class="mb st-${st}${match(t) ? "" : " out"}" data-id="${esc(t.id)}" transform="translate(${f1(p[0])},${f1(p[1])})" tabindex="0" role="button" aria-label="${esc(label)}" data-tip="${esc(label)}"><circle class="mb-hit" r="24"/><g transform="translate(-17.4,-21.7) scale(.62)">${houseSvg(st, true)}</g>${mark}</g>`;
+  }
+  function regionTownSvg(a, p, r, pulse, pos) {
+    const unscoped = !a.tasks.length, sub = townSub(a), dim = !unscoped && !a.tasks.some(match);
+    pos = pos || clusterPositions(a.tasks.length, r);
+    return `<g class="r-town" transform="translate(${f1(p[0])},${f1(p[1])})" style="--halo:var(--wash-${a.ws._ci})">${pulse ? `<circle class="pulse" r="${f1(r)}"/>` : ""}<g class="town r-hub${unscoped ? " unscoped" : ""}${dim ? " dim" : ""}" data-id="${esc(a.id)}" tabindex="0" role="button" aria-label="${esc(a.title + ": " + sub + ". Open the town plan.")}">${cityInner(a, r, 9, "fogr")}</g>${a.tasks.map((t, i) => miniBld(t, pos[i])).join("")}<text class="c-label lg" y="${f1(r + 29)}">${esc(a.title)}</text><text class="${unscoped ? "c-fog" : "c-sub"}" y="${f1(r + 48)}">${esc(sub)}</text></g>`;
+  }
+  function renderRegion(R, focusArea) {
+    const w = R.ws, B = R.B, svg = $("#rsvg");
+    const P = a => RP(R, a._x, a._y);
+    const big = a => cityR(a) * 1.25, small = a => cityR(a) * 0.72;
+    const rad = a => a.ws === w ? big(a) : small(a);
+    const vis = (p, m) => p[0] > -m && p[0] < RW + m && p[1] > -m && p[1] < RH + m;
+    const roads = WORLD.edges.map(e => {
+      const f = e.from.ws === w, t = e.to.ws === w;
+      if (!f && !t && !vis(P(e.from), 0) && !vis(P(e.to), 0)) return "";
+      return roadSvg(e, P, rad, f && t ? "" : f || t ? " ext" : " far");
+    }).join("");
+    const ghostTowns = WORLD.cities.filter(a => a.ws !== w && vis(P(a), -20));
+    const ghosts = ghostTowns.map(a => {
+      const p = P(a), r = small(a), lw = textW(a.title, "600 14px " + FONT_CHART) / 2;
+      const named = p[0] - lw > 22 && p[0] + lw < RW - 22 && p[1] + r + 24 < RH - 18;    // a name the frame would cut is left to the tooltip
+      return `<g class="town ghost" data-id="${esc(a.id)}" transform="translate(${f1(p[0])},${f1(p[1])})" tabindex="0" role="button" aria-label="${esc(a.title + ", in " + a.ws.title + ". Go to that territory.")}" data-tip="${esc(a.title + " is in " + a.ws.title + ". Click to go there.")}">${cityInner(a, r, 5, "fogr")}${named ? `<text class="c-label sm" y="${f1(r + 19)}">${esc(a.title)}</text>` : ""}</g>`;
+    }).join("");
+    const mine = w.areas.filter(a => a._x !== undefined);
+    const TL = territoryLayout(R, mine, ghostTowns, P, big, small);
+    const towns = mine.map(a => regionTownSvg(a, P(a), big(a), a === focusArea, TL.houses.get(a))).join("");
+    // signposts at the edge of the inset towards each neighbouring territory, nudged clear of towns, houses and each other
+    const obst = TL.boxes.slice();
+    const efont = "italic 400 15px " + FONT_SERIF;
+    const edges = WS.filter(v => v !== w && v.areas.some(a => a._x !== undefined)).map(v => {
+      const cs = v.areas.filter(a => a._x !== undefined);
+      const q = RP(R, cs.reduce((s, a) => s + a._x, 0) / cs.length, cs.reduce((s, a) => s + a._y, 0) / cs.length);
+      const dx = q[0] - RW / 2, dy = q[1] - RH / 2, hx = RW / 2 - 60, hy = RH / 2 - 50;
+      const side = Math.abs(dx) * hy >= Math.abs(dy) * hx ? (dx > 0 ? "e" : "w") : (dy > 0 ? "s" : "n");
+      const t = Math.min(hx / Math.max(1e-6, Math.abs(dx)), hy / Math.max(1e-6, Math.abs(dy)));
+      const tw = textW(v.title, efont);
+      const x0 = Math.max(tw / 2 + 50, Math.min(RW - tw / 2 - 50, RW / 2 + dx * t)), y0 = Math.max(72, Math.min(RH - 62, RH / 2 + dy * t));
+      const boxAt = (x, y) => side === "w" ? [34, y - 17, 58 + tw, y + 7] : side === "e" ? [RW - 58 - tw, y - 17, RW - 34, y + 7] : side === "n" ? [x - tw / 2 - 6, 28, x + tw / 2 + 6, 66] : [x - tw / 2 - 6, RH - 66, x + tw / 2 + 6, RH - 28];
+      // the nearest place along that edge that's clear, or failing that the least covered one
+      const cover = bx => { let s = 0; obst.forEach(o => { const ix = Math.min(bx[2], o[2]) - Math.max(bx[0], o[0]), iy = Math.min(bx[3], o[3]) - Math.max(bx[1], o[1]); if (ix > 0 && iy > 0) s += ix * iy; }); return s; };
+      let x = x0, y = y0, b = boxAt(x, y), least = cover(b);
+      for (let k = 1; k < 48 && least > 0; k++) {
+        const step = (k % 2 ? 1 : -1) * Math.ceil(k / 2);
+        let nx = x0, ny = y0;
+        if (side === "w" || side === "e") { ny = y0 + step * 18; if (ny < 72 || ny > RH - 62) continue; }
+        else { nx = x0 + step * 36; if (nx < tw / 2 + 50 || nx > RW - tw / 2 - 50) continue; }
+        const nb = boxAt(nx, ny), c = cover(nb);
+        if (c < least) { least = c; x = nx; y = ny; b = nb; }
+      }
+      obst.push(b);
+      const lab = esc(v.title);
+      let g;
+      if (side === "w") g = `<path d="M0,0L9,-6V6Z" transform="translate(40,${f1(y - 5)})"/><text x="54" y="${f1(y)}">${lab}</text>`;
+      else if (side === "e") g = `<path d="M0,0L-9,-6V6Z" transform="translate(${RW - 40},${f1(y - 5)})"/><text x="${RW - 54}" y="${f1(y)}" text-anchor="end">${lab}</text>`;
+      else if (side === "n") g = `<path d="M0,0L-6,9H6Z" transform="translate(${f1(x)},34)"/><text x="${f1(x)}" y="60" text-anchor="middle">${lab}</text>`;
+      else g = `<path d="M0,0L-6,-9H6Z" transform="translate(${f1(x)},${RH - 32})"/><text x="${f1(x)}" y="${RH - 48}" text-anchor="middle">${lab}</text>`;
+      return `<g class="r-edge" data-ws="${esc(v.id)}" tabindex="0" role="button" aria-label="${esc("Go to the " + v.title + " territory")}" data-tip="${esc("Go to the " + v.title + " territory")}">${g}</g>`;
+    }).join("");
+    // the territory's name: just above its towns and houses if that's clear, otherwise the nearest clear place
+    let text = w.title.toUpperCase(), fs = 27, tw = textW(text, "600 27px " + FONT_CHART) + text.length * 27 * 0.2;
+    if (tw > RW - 90) {                     // a very long name gets smaller, then shortened, so it stays inside the frame
+      fs = Math.max(16, Math.floor(27 * (RW - 90) / tw));
+      text = fitText(text, RW - 90, `600 ${fs}px ${FONT_CHART}`, fs * 0.2);
+      tw = textW(text, `600 ${fs}px ${FONT_CHART}`) + text.length * fs * 0.2;
+    }
+    const own = mine.map(a => { const p = P(a), r = big(a), hs = TL.houses.get(a) || []; return [Math.min(p[1] - r, ...hs.map(q => p[1] + q[1] - 22)), p[1] + r + 53]; });
+    const cxs = mine.map(a => P(a)[0]), cx = cxs.reduce((s, v) => s + v, 0) / cxs.length;
+    const above = Math.min(...own.map(o => o[0])) - 12, below = Math.max(...own.map(o => o[1])) + 30;
+    const area = b => { let s = 0; obst.forEach(o => { const ix = Math.min(b[2], o[2]) - Math.max(b[0], o[0]), iy = Math.min(b[3], o[3]) - Math.max(b[1], o[1]); if (ix > 0 && iy > 0) s += ix * iy; }); return s; };
+    let tx = cx, ty = above, tc = Infinity;
+    const xlo = tw / 2 + 36, xhi = Math.max(xlo, RW - tw / 2 - 36);
+    for (let y = 56; y <= RH - 22; y += 6) {
+      for (let k = 0; k <= 24; k++) {
+        const x = Math.max(xlo, Math.min(xhi, cx + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 30));
+        const c = area([x - tw / 2 - 4, y - fs * 0.85, x + tw / 2 + 4, y + 6]) * 4 + Math.min(Math.abs(y - above), Math.abs(y - below) + 24) + Math.abs(x - cx) * 0.5;
+        if (c < tc) { tc = c; tx = x; ty = y; }
+      }
+    }
+    const title = `<text class="r-title" x="${f1(tx)}" y="${f1(ty)}" style="fill:var(--ws-${w._ci});--halo:var(--wash-${w._ci})${fs !== 27 ? ";font-size:" + fs + "px" : ""}" aria-hidden="true">${esc(text)}</text>`;
+    const fr = chartFrame(RW, RH, 100, B.x, B.y, B.k);
+    svg.innerHTML = `<defs>${fogFilter("fogr")}</defs>${fr.grid}${eggsSvg(RW, RH, B.x, B.y, B.k)}<g class="roads">${roads}</g>${ghosts}${title}<g class="towns">${towns}</g>${fr.border}${edges}`;
+    svg.setAttribute("aria-label", `Map of the ${w.title} territory: its areas as towns, each task as a small house`);
+  }
+  function renderRegionHead(R) {
+    const w = R.ws, ts = MAPPED.filter(t => t.ws === w && match(t)), st = stats(ts);
+    const ready = ts.filter(isReady).length, waiting = ts.filter(isWaiting).length;
+    $("#regionHead").innerHTML = `<a class="btn back" href="#map">← Chart</a><div class="plan-title"><p class="kicker">Territory</p><h1>${esc(w.title)}</h1><p>${esc(w.summary || "")}</p></div><div class="chips"><span class="chip">${w.areas.length} area${w.areas.length === 1 ? "" : "s"}</span><span class="chip">${st.n} task${st.n === 1 ? "" : "s"}${filtersOn() ? " match the filters" : ""}</span><span class="chip">${st.built} built</span>${ready ? `<span class="chip good">${ready} ready to start</span>` : ""}${waiting ? `<span class="chip warn">${waiting} waiting</span>` : ""}</div>`;
+  }
+  function renderRegionPanel(R) {
+    const w = R.ws, ts = MAPPED.filter(t => t.ws === w && match(t)), st = stats(ts), pct = pctOf(st.built, st.n);
+    const ready = ts.filter(isReady).sort(cmpId), waiting = ts.filter(isWaiting).sort(cmpId);
+    const holders = ts.filter(t => !COMPLETE(t.status)).map(t => ({ t, n: Array.from(downstream(t)).filter(d => !COMPLETE(d.status)).length })).filter(x => x.n > 0).sort((a, b) => (b.n - a.n) || cmpId(a.t, b.t)).slice(0, 4);
+    const needs = new Map(), feeds = new Map();
+    MAPPED.forEach(t => t.deps.forEach(d => {
+      if (!d.ws || !t.ws) return;
+      if (t.ws === w && d.ws !== w) needs.set(d.ws, (needs.get(d.ws) || 0) + 1);
+      if (d.ws === w && t.ws !== w) feeds.set(t.ws, (feeds.get(t.ws) || 0) + 1);
+    }));
+    const wsBtn = (v, n, verb) => `<button type="button" class="tlink" data-ws-go="${esc(v.id)}"><span>${wsDot(v)}</span><span class="tt">${esc(v.title)}</span><span class="ta">${n} ${verb}</span></button>`;
+    const areaBtn = a => { const s = stats(a.tasks.filter(match)), rd = a.tasks.filter(t => match(t) && isReady(t)).length; return `<button type="button" class="tlink" data-area="${esc(a.id)}"><span class="mono">${esc(a.id)}</span><span class="tt">${esc(a.title)}</span><span class="ta">${a.tasks.length ? `${s.built} of ${s.n} built${rd ? " · " + rd + " ready" : ""}` : "Not yet broken into tasks"}${a.tasks.length ? sbar(s, "", "", "span") : ""}</span></button>`; };
+    const tl = (t, note) => taskLink(t).replace("</span></button>", (note ? " · " + esc(note) : "") + "</span></button>");
+    const links = Array.from(needs).map(([v, n]) => wsBtn(v, n, n === 1 ? "link: work needed from there" : "links: work needed from there")).concat(Array.from(feeds).map(([v, n]) => wsBtn(v, n, n === 1 ? "link: work that waits on this territory" : "links: work that waits on this territory")));
+    const ef = effort(ts);
+    const efLine = hasEst && ef.n ? `<p class="effort-line">Estimated ${esc(fmtEst(ef.n))}: ${esc(fmtNum(ef.built))} built, ${esc(fmtNum(ef.left))} to go${ef.none ? ` · ${ef.none} task${ef.none === 1 ? " has" : "s have"} no estimate` : ""}</p>` : "";
+    $("#rpanel").innerHTML = `<h2>${esc(w.title)}</h2><div class="overall"><span class="big">${pct}%</span><span><strong>${st.built} of ${st.n}</strong> tasks built</span></div>${sbar(st)}${efLine}
+<h3>Towns</h3><div class="links">${w.areas.map(areaBtn).join("")}</div>
+<h3>Ready to start</h3>${ready.length ? `<div class="links">${ready.map(t => tl(t)).join("")}</div>` : `<p class="empty">Nothing here is ready to start.</p>`}
+<h3>Holding up the most work</h3>${holders.length ? `<div class="links">${holders.map(x => tl(x.t, "holds up " + x.n)).join("")}</div>` : `<p class="empty">Nothing here is holding up other work.</p>`}
+<h3>Started, but waiting</h3>${waiting.length ? `<div class="links">${waiting.map(t => tl(t, "needs " + openDeps(t).map(d => d.id).join(", "))).join("")}</div>` : `<p class="empty">No started task here is waiting on another.</p>`}
+<h3>Linked territories</h3>${links.length ? `<div class="links">${links.join("")}</div>` : `<p class="empty">No links to other territories.</p>`}`;
+    bindLinks($("#rpanel"));
+  }
+  function renderRegionKey() {
+    $("#rkey").innerHTML = `<span class="k"><strong>Click a town for its plan, or a house for its task.</strong></span>${houseKey()}<span class="k"><svg width="14" height="14" aria-hidden="true"><circle class="mb-ready" cx="7" cy="7" r="5"/></svg>Ready to start</span><span class="k"><svg width="14" height="14" aria-hidden="true"><circle class="mb-wait" cx="7" cy="7" r="4.6"/></svg>Waiting on a prerequisite</span>`;
+  }
+  function initRegionEvents() {
+    const svg = $("#rsvg"), SEL = ".mb,.r-hub,.ghost,.r-edge";
+    const act = el => {
+      const id = el.getAttribute("data-id");
+      if (el.classList.contains("mb")) openTask(byId.get(id), true);
+      else if (el.classList.contains("r-hub")) openArea(byId.get(id), true);
+      else if (el.classList.contains("ghost")) { const a = byId.get(id); openRegion(a.ws, a); }
+      else openRegion(byId.get(el.getAttribute("data-ws")));
+    };
+    svg.addEventListener("click", e => { const el = e.target.closest(SEL); if (el) act(el); });
+    svg.addEventListener("keydown", e => { if (e.key !== "Enter" && e.key !== " ") return; const el = e.target.closest(SEL); if (el) { e.preventDefault(); act(el); } });
+    svg.addEventListener("pointerover", e => {
+      const hub = e.target.closest(".r-hub");
+      if (hub && !hub.contains(e.relatedTarget)) { const a = byId.get(hub.getAttribute("data-id")); focusRoads(svg, a.id); showTip(cityTip(a, "Click to open the town plan"), e); }
+    });
+    svg.addEventListener("pointerout", e => {
+      const hub = e.target.closest(".r-hub");
+      if (hub && !hub.contains(e.relatedTarget)) { focusRoads(svg, null); hideTip(); }
+    });
+    svg.addEventListener("focusin", e => { const hub = e.target.closest(".r-hub"); if (hub) focusRoads(svg, hub.getAttribute("data-id")); });
+    svg.addEventListener("focusout", () => focusRoads(svg, null));
+  }
+
+  /* ---------------- town plan ---------------- */
+  const TW = 256, TH = 104, GX = 100, GY = 44, GW = 200, GH = 58, GGAP = 16, PX = 36, DOOR = 52, WALL_IN = 50, OUTC = 70, WALL_TOP = 44;
+  function planLayout(a) {
+    if (a._plan) return a._plan;
+    const ts = a.tasks.slice(), inA = new Set(ts), lay = layers(ts);
+    let ncol = 0; lay.forEach(v => { ncol = Math.max(ncol, v + 1); });
+    const cols = Array.from({ length: ncol }, () => []);
+    ts.forEach(t => cols[lay.get(t)].push(t));
+    cols.forEach(c => c.sort(cmpId));
+    const rank = new Map();
+    const reindex = () => cols.forEach(c => c.forEach((t, i) => rank.set(t, c.length > 1 ? i / (c.length - 1) : 0.5)));
+    const bary = (t, fwd) => { const ns = (fwd ? t.deps : t.dependents).filter(n => inA.has(n)); return ns.length ? ns.reduce((s, n) => s + rank.get(n), 0) / ns.length : rank.get(t); };
+    reindex();
+    for (let sweep = 0; sweep < 4; sweep++) {
+      for (let l = 1; l < ncol; l++) { cols[l].sort((x, y) => (bary(x, true) - bary(y, true)) || cmpId(x, y)); reindex(); }
+      for (let l = ncol - 2; l >= 0; l--) { cols[l].sort((x, y) => (bary(x, false) - bary(y, false)) || cmpId(x, y)); reindex(); }
+    }
+    const extIn = [], extOut = [];
+    ts.forEach(t => {
+      t.deps.forEach(d => { if (!inA.has(d) && extIn.indexOf(d) < 0) extIn.push(d); });
+      t.dependents.forEach(d => { if (!inA.has(d) && extOut.indexOf(d) < 0) extOut.push(d); });
+    });
+    const hasIn = extIn.length > 0, hasOut = extOut.length > 0;
+    const leftWall = hasIn ? PX + GW + OUTC : PX + 24, x0 = leftWall + WALL_IN;
+    const colX = cols.map((c, ci) => x0 + ci * (TW + GX));
+    const right = colX[ncol - 1] + TW, rightWall = right + WALL_IN, goutX = rightWall + OUTC;
+    const natural = (hasOut ? goutX + GW : rightWall + 24) + PX;
+    const w = Math.max(720, natural), ox = (w - natural) / 2;
+    const PT = WALL_TOP + 76;
+    const colH = cols.map(c => c.length * TH + Math.max(0, c.length - 1) * GY);
+    const ginH = extIn.length * GH + Math.max(0, extIn.length - 1) * GGAP;
+    const goutH = extOut.length * GH + Math.max(0, extOut.length - 1) * GGAP;
+    const innerH = Math.max(TH, ginH, goutH, ...colH);
+    const pos = new Map();
+    cols.forEach((c, ci) => { const off = (innerH - colH[ci]) / 2; c.forEach((t, i) => pos.set(t, { x: colX[ci], y: PT + off + i * (TH + GY), col: ci })); });
+    const avgY = list => list.length ? list.reduce((s, n) => s + pos.get(n).y, 0) / list.length : 0;
+    extIn.sort((p, q) => (avgY(p.dependents.filter(n => inA.has(n))) - avgY(q.dependents.filter(n => inA.has(n)))) || cmpId(p, q));
+    extOut.sort((p, q) => (avgY(p.deps.filter(n => inA.has(n))) - avgY(q.deps.filter(n => inA.has(n)))) || cmpId(p, q));
+    const gin = extIn.map((t, i) => ({ t, x: PX, y: PT + (innerH - ginH) / 2 + i * (GH + GGAP) }));
+    const gout = extOut.map((t, i) => ({ t, x: goutX, y: PT + (innerH - goutH) / 2 + i * (GH + GGAP) }));
+    const wallBot = PT + innerH + 46;
+    const blocks = cols.map(c => c.map(t => { const y = pos.get(t).y; return [y - 16, y + TH + 14]; }));
+    return (a._plan = { pos, gin, gout, inA, ncol, colX, x0, right, leftWall, rightWall, goutX, hasIn, hasOut, natural, w, h: wallBot + 40, ox, PT, innerH, wallTop: WALL_TOP, wallBot, blocks, laneTop: PT - 28, laneBot: PT + innerH + 26 });
+  }
+  /* Streets run in the corridors between columns: c = -1 is just inside the west wall, ncol - 1 just inside the east wall. */
+  function corridorX(L, c) { return c < 0 ? L.x0 - WALL_IN / 2 : c >= L.ncol - 1 ? L.right + WALL_IN / 2 : L.colX[c] + TW + GX / 2; }
+  /* A horizontal lane that is clear of every house in columns c0..c1: the outer lanes above and below the town, or the middle of a gap. */
+  function laneY(L, c0, c1, target) {
+    const lo = L.laneTop - 6, hi = L.laneBot + 6;
+    let free = [[lo, hi]];
+    for (let ci = Math.max(0, c0); ci <= Math.min(L.ncol - 1, c1); ci++) L.blocks[ci].forEach(blk => {
+      const a = blk[0], b = blk[1], next = [];
+      free.forEach(iv => { const u = iv[0], v = iv[1]; if (b <= u || a >= v) next.push(iv); else { if (a > u) next.push([u, a]); if (b < v) next.push([b, v]); } });
+      free = next;
+    });
+    let yc = L.laneTop, best = Infinity;
+    free.forEach(iv => {
+      if (iv[1] - iv[0] < 12) return;
+      const y = iv[0] <= lo + 0.5 ? L.laneTop : iv[1] >= hi - 0.5 ? L.laneBot : (iv[0] + iv[1]) / 2, dd = Math.abs(y - target);
+      if (dd < best) { best = dd; yc = y; }
+    });
+    return yc;
+  }
+  function planStreets(L, ts) {
+    const list = [];
+    const add = (from, to, open, sx, sy, sCol, tx, ty, tCol) => list.push({ from, to, open, sx, sy, sCol, tx, ty, tCol });
+    ts.forEach(t => {
+      const p = L.pos.get(t);
+      t.deps.forEach(d => {
+        if (L.inA.has(d)) { const q = L.pos.get(d); add(d.id, t.id, !COMPLETE(d.status), q.x + TW, q.y + DOOR, q.col, p.x, p.y + DOOR, p.col); }
+        else { const g = L.gin.find(x => x.t === d); if (g) add(d.id, t.id, !COMPLETE(d.status), g.x + GW, g.y + GH / 2, -1, p.x, p.y + DOOR, p.col); }
+      });
+      t.dependents.forEach(d => { if (L.inA.has(d)) return; const g = L.gout.find(x => x.t === d); if (g) add(t.id, d.id, !COMPLETE(t.status), p.x + TW, p.y + DOOR, p.col, g.x, g.y + GH / 2, L.ncol); });
+    });
+    list.forEach(s => {
+      const a = corridorX(L, s.sCol);
+      if (s.tCol - s.sCol === 1) s.pts = [[s.sx, s.sy], [a, s.sy], [a, s.ty], [s.tx, s.ty]];
+      else if (s.tCol > s.sCol) { const b = corridorX(L, s.tCol - 1), yl = laneY(L, s.sCol + 1, s.tCol - 1, (s.sy + s.ty) / 2); s.pts = [[s.sx, s.sy], [a, s.sy], [a, yl], [b, yl], [b, s.ty], [s.tx, s.ty]]; }
+      else { const b = corridorX(L, s.tCol - 1); s.pts = [[s.sx, s.sy], [a, s.sy], [a, L.laneTop], [b, L.laneTop], [b, s.ty], [s.tx, s.ty]]; }
+      s.d = orth(s.pts, 14);
+    });
+    return list;
+  }
+  /* A right-angled polyline with rounded corners. */
+  function orth(pts, r) {
+    const P = [];
+    pts.forEach(p => { const l = P[P.length - 1]; if (!l || Math.abs(l[0] - p[0]) > 0.5 || Math.abs(l[1] - p[1]) > 0.5) P.push(p); });
+    const Q = [P[0]];
+    for (let i = 1; i < P.length - 1; i++) { const a = Q[Q.length - 1], b = P[i], c = P[i + 1]; if (Math.abs((b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0])) > 0.01) Q.push(b); }
+    if (P.length > 1) Q.push(P[P.length - 1]);
+    let d = `M${f1(Q[0][0])},${f1(Q[0][1])}`;
+    for (let i = 1; i < Q.length - 1; i++) {
+      const a = Q[i - 1], b = Q[i], c = Q[i + 1], l1 = Math.hypot(b[0] - a[0], b[1] - a[1]), l2 = Math.hypot(c[0] - b[0], c[1] - b[1]), rr = Math.min(r, l1 / 2, l2 / 2);
+      d += ` L${f1(b[0] - (b[0] - a[0]) / l1 * rr)},${f1(b[1] - (b[1] - a[1]) / l1 * rr)} Q${f1(b[0])},${f1(b[1])} ${f1(b[0] + (c[0] - b[0]) / l2 * rr)},${f1(b[1] + (c[1] - b[1]) / l2 * rr)}`;
+    }
+    const z = Q[Q.length - 1];
+    return d + ` L${f1(z[0])},${f1(z[1])}`;
+  }
+  function distSeg(x, y, p, q) { const dx = q[0] - p[0], dy = q[1] - p[1], l2 = dx * dx + dy * dy; let t = l2 ? ((x - p[0]) * dx + (y - p[1]) * dy) / l2 : 0; t = Math.max(0, Math.min(1, t)); return Math.hypot(x - p[0] - t * dx, y - p[1] - t * dy); }
+  /* Small groves of trees wherever there is room: inside the walls, and on the land outside. */
+  function planTrees(L, streets, heads, seed) {
+    const rnd = mulberry32(hashStr("trees" + seed));
+    const pad = (x0, y0, x1, y1, m) => [x0 - m, y0 - m, x1 + m, y1 + m];
+    const boxes = Array.from(L.pos.values()).map(p => pad(p.x, p.y - 12, p.x + TW + 3, p.y + TH + 4, 12))
+      .concat(L.gin.concat(L.gout).map(g => pad(g.x, g.y, g.x + GW, g.y + GH, 12)), heads);
+    const segs = []; streets.forEach(s => { for (let i = 1; i < s.pts.length; i++) segs.push([s.pts[i - 1], s.pts[i]]); });
+    const isInside = (x, y, m) => x > L.leftWall + m && x < L.rightWall - m && y > L.wallTop + m && y < L.wallBot - m;
+    const ok = (x, y, r) => {
+      if (y < 26 + r || y > L.h - 24 - r || x < -L.ox + 26 + r || x > L.natural + L.ox - 26 - r) return false;
+      if (!isInside(x, y, 12 + r) && isInside(x, y, -16 - r)) return false;
+      if (boxes.some(b => x > b[0] - r && x < b[2] + r && y > b[1] - r && y < b[3] + r)) return false;
+      return !segs.some(([p, q]) => distSeg(x, y, p, q) < 9 + r);
+    };
+    const out = [];
+    for (let y = 44; y < L.h - 30; y += 54) for (let x = -L.ox + 40; x < L.natural + L.ox - 30; x += 54) {
+      const gx = x + (rnd() - 0.5) * 40, gy = y + (rnd() - 0.5) * 34, keep = rnd(), n = 1 + Math.floor(rnd() * 4);
+      if (keep > (isInside(gx, gy, 0) ? 0.34 : 0.3)) continue;
+      for (let k = 0; k < n; k++) {
+        const ang = rnd() * Math.PI * 2, d = k ? 9 + rnd() * 8 : 0, r = 4.6 + rnd() * 2.8;
+        const tx = gx + Math.cos(ang) * d, ty = gy + Math.sin(ang) * d * 0.75;
+        if (ok(tx, ty, r)) out.push([tx, ty, r]);
+      }
+    }
+    out.sort((p, q) => p[1] - q[1]);
+    return out.map(([x, y, r]) => `<g class="tree" transform="translate(${f1(x)},${f1(y)})"><ellipse class="tr-sh" cx="2" cy="${f1(r * 0.75)}" rx="${f1(r)}" ry="${f1(r * 0.42)}"/><circle class="tr-c" r="${f1(r)}"/><circle class="tr-hi" cx="${f1(-r * 0.32)}" cy="${f1(-r * 0.32)}" r="${f1(r * 0.42)}"/></g>`).join("");
+  }
+  function planFrame(w, h) {
+    const i = 10, bw = 5, step = 40, o = i + bw;
+    let bars = "";
+    for (let x = i, k = 0; x < w - i - 0.1; x += step, k++) if (k % 2 === 0) { const ww = Math.min(step, w - i - x); bars += `<rect x="${x}" y="${i}" width="${ww}" height="${bw}"/><rect x="${x}" y="${h - i - bw}" width="${ww}" height="${bw}"/>`; }
+    for (let y = i, k = 0; y < h - i - 0.1; y += step, k++) if (k % 2 === 0) { const hh = Math.min(step, h - i - y); bars += `<rect x="${i}" y="${y}" width="${bw}" height="${hh}"/><rect x="${w - i - bw}" y="${y}" width="${bw}" height="${hh}"/>`; }
+    return `<path class="p-margin" fill-rule="evenodd" d="M0,0H${w}V${h}H0Z M${o},${o}V${h - o}H${w - o}V${o}Z"/><g class="p-bars">${bars}</g><rect class="p-frame" x="${i}" y="${i}" width="${w - 2 * i}" height="${h - 2 * i}"/><rect class="p-frame" x="${o}" y="${o}" width="${w - 2 * o}" height="${h - 2 * o}"/>`;
+  }
+  const PLAN_DEFS = `<defs><pattern id="grass" width="34" height="26" patternUnits="userSpaceOnUse"><path class="tuft" d="M4,10l2,-4l2,4M20,22l2,-4l2,4M27,7l1.5,-3l1.5,3M12,19l1.5,-3l1.5,3"/></pattern>${fogFilter("fogp")}</defs>`;
+  function pillSvg(text, cls) { const w = textW(text, "700 11.5px " + FONT_UI) + 18; return `<g class="pill ${cls}" transform="translate(12,-11)"><rect width="${f1(w)}" height="19" rx="9.5"/><text x="9" y="13.5">${esc(text)}</text></g>`; }
+  function tileSvg(t, p) {
+    const st = t.status, si = subInfo(t);
+    const lines = wrapText(t.title, TW - 92, "600 14px " + FONT_UI, 2);
+    const kind = KIND_LABEL[t.kind] || "Task";
+    const ready = isReady(t), wait = isWaiting(t);
+    const pill = ready ? pillSvg("Ready", "good") : wait ? pillSvg("Waiting on " + openDeps(t).length, "warn") : "";
+    const MF = "400 12px " + FONT_UI, EF = "700 11px " + FONT_UI, IF = "400 11.5px " + FONT_MONO;
+    let sub = "", subEnd = 104;
+    if (si.n) { const sx = `${si.done}/${si.n}`; sub = `<rect class="sb-track" x="104" y="${TH - 21}" width="44" height="6" rx="3"/><rect class="sb-fill" x="104" y="${TH - 21}" width="${f1(44 * si.done / si.n)}" height="6" rx="3"/><text class="meta" x="154" y="${TH - 14}">${sx}</text>`; subEnd = 154 + textW(sx, MF); }
+    else if (st !== "planned") { sub = `<text class="meta" x="104" y="${TH - 14}">No subtasks</text>`; subEnd = 104 + textW("No subtasks", MF); }
+    const metaRoom = TW - 12 - subEnd - 10;
+    let meta = [t.milestone || "", onlyAB(t) ? "A/B" : ""].filter(Boolean).join(" · ");
+    if (meta && textW(meta, MF) > metaRoom) meta = onlyAB(t) && t.milestone && textW(t.milestone, MF) <= metaRoom ? t.milestone : metaRoom > 30 ? fitText(meta, metaRoom, MF) : "";
+    let eyebrow = kind.toUpperCase(), bid = t.id;
+    const ew = textW(eyebrow, EF) + 0.77 * eyebrow.length;
+    if (textW(bid, IF) > TW - 12 - (80 + ew + 12)) { eyebrow = ""; bid = fitText(bid, TW - 92, IF); }   // the id matters more than the kind
+    const aria = t.id + " " + t.title + ", " + STAGE_LABEL[st] + (ready ? ", ready to start" : wait ? ", waiting on a prerequisite" : "") + (t.owner ? ", owner " + t.owner : "");
+    return `<g class="lot st-${st}${match(t) ? "" : " out"}" data-id="${esc(t.id)}" transform="translate(${f1(p.x)},${f1(p.y)})" tabindex="0" role="button" aria-label="${esc(aria)}"><rect class="lot-sh" x="3" y="4" width="${TW}" height="${TH}" rx="9"/><rect class="lot-b" width="${TW}" height="${TH}" rx="9"/><g transform="translate(12,${TH - 74})">${houseSvg(st, false)}</g>${eyebrow ? `<text class="eyebrow" x="80" y="25">${esc(eyebrow)}</text>` : ""}<text class="bid" x="${TW - 12}" y="25" text-anchor="end">${esc(bid)}</text><text class="title">${lines.map((l, i) => `<tspan x="80" y="${46 + i * 18}">${esc(l)}</tspan>`).join("")}</text><g transform="translate(89,${TH - 18})"><circle class="ownr" r="10"/><text class="ownr-t" y="3.7">${esc(initials(t.owner))}</text></g>${sub}${meta ? `<text class="meta" x="${TW - 12}" y="${TH - 14}" text-anchor="end">${esc(meta)}</text>` : ""}${pill}</g>`;
+  }
+  function gateSvg(g, side) {
+    const t = g.t, full = (side === "in" ? "From " : "On to ") + (t.area ? t.area.title : "another area"), l1 = fitText(full, GW - 36, "italic 400 12.5px " + FONT_SERIF);
+    const lines = wrapText(t.title, GW - 36, "600 13px " + FONT_UI, 2);
+    return `<g class="gate" data-id="${esc(t.id)}" transform="translate(${f1(g.x)},${f1(g.y)})" tabindex="0" role="button" aria-label="${esc(full + ": " + t.id + " " + t.title)}"><path class="sign" d="M0,0H${GW - 14}L${GW},${GH / 2}L${GW - 14},${GH}H0Z"/><circle class="gdot fl-${t.status}" cx="14" cy="${GH / 2}" r="5"/><text class="g1" x="26" y="19">${esc(l1)}</text><text class="g2">${lines.map((l, i) => `<tspan x="26" y="${37 + i * 15}">${esc(l)}</tspan>`).join("")}</text></g>`;
+  }
+  function sizePlan(L) {
+    const box = $("#planScroll"), svg = $("#plan");
+    const avail = Math.max(300, box.clientWidth - 3), scale = Math.max(0.84, Math.min(1, avail / L.w));
+    svg.setAttribute("width", Math.round(L.w * scale)); svg.setAttribute("height", Math.round(L.h * scale));
+  }
+  function renderCity(a) {
+    const had = document.activeElement && document.activeElement.closest ? document.activeElement.closest("#plan .lot,#plan .gate") : null;
+    const ts = a.tasks, st = stats(ts.filter(match));
+    const ready = ts.filter(t => match(t) && isReady(t)).length, waiting = ts.filter(t => match(t) && isWaiting(t)).length;
+    const chips = ts.length
+      ? `<span class="chip">${st.n} task${st.n === 1 ? "" : "s"}${filtersOn() ? " match the filters" : ""}</span><span class="chip">${st.built} built</span>${ready ? `<span class="chip good">${ready} ready to start</span>` : ""}${waiting ? `<span class="chip warn">${waiting} waiting</span>` : ""}`
+      : `<span class="chip">Not yet broken into tasks</span>`;
+    $("#planHead").innerHTML = `<a class="btn back" href="#region.${enc(a.ws.id)}">← ${esc(a.ws.title)}</a><div class="plan-title"><p class="kicker">Town in ${esc(a.ws.title)}</p><h1>${esc(a.title)}</h1><p>${esc(a.summary || "")}</p></div><div class="chips">${chips}</div>`;
+    const svg = $("#plan");
+    if (!ts.length) {
+      const avail = Math.max(300, Math.floor($("#planScroll").clientWidth - 3)), w = Math.max(760, avail), h = 330, rr = mulberry32(hashStr("planfog" + a.id));
+      let c = "";
+      for (let i = 0, n = Math.round(24 * w / 760); i < n; i++) c += `<circle cx="${f1(70 + rr() * (w - 140))}" cy="${f1(70 + rr() * (h - 140))}" r="${f1(50 + rr() * 60)}"/>`;
+      svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      svg.setAttribute("width", Math.min(w, avail)); svg.removeAttribute("height");
+      svg.innerHTML = PLAN_DEFS + `<rect class="p-land" width="${w}" height="${h}"/><g class="fog" filter="url(#fogp)">${c}</g>` + planFrame(w, h) + `<text class="fog-title" x="${w / 2}" y="${h / 2 - 8}">Not yet broken into tasks</text><text class="fog-sub" x="${w / 2}" y="${h / 2 + 20}">Add task notes with parent: ${esc(a.id)} and they appear here as houses.</text>`;
+      return;
+    }
+    const L = planLayout(a), S = planStreets(L, ts);
+    const avail = Math.max(300, Math.floor($("#planScroll").clientWidth - 3));
+    L.avail = avail; L.w = Math.max(720, L.natural, avail); L.ox = (L.w - L.natural) / 2;
+    const wl = L.leftWall, wr = L.rightWall, wt = L.wallTop, wb = L.wallBot, hy = wt + 30;
+    const longHead = "Tasks, left to right in the order they can be done", shortHead = "In the order they can be done";
+    const headText = textW(longHead, "italic 400 14px " + FONT_SERIF) < wr - L.x0 - 20 ? longHead : shortHead;
+    const heads = [[L.x0 - 8, hy - 18, L.x0 + textW(headText, "italic 400 14px " + FONT_SERIF) + 8, hy + 8]];
+    let headSvg = `<text class="p-colhead" x="${L.x0}" y="${hy}">${headText}</text>`;
+    if (L.hasIn) { headSvg += `<text class="p-colhead out" x="${PX}" y="${hy}">Needed from other areas</text>`; heads.push([PX - 8, hy - 18, PX + 170, hy + 8]); }
+    if (L.hasOut) { headSvg += `<text class="p-colhead out" x="${L.goutX}" y="${hy}">Needed by other areas</text>`; heads.push([L.goutX - 8, hy - 18, L.goutX + 170, hy + 8]); }
+    const ground = `<rect class="t-ground" x="${wl}" y="${wt}" width="${wr - wl}" height="${wb - wt}"/><rect x="${wl}" y="${wt}" width="${wr - wl}" height="${wb - wt}" fill="url(#grass)"/>`;
+    const wallD = `M${wl},${wt}H${wr}V${wb}H${wl}Z`;
+    const walls = `<path class="wall-edge" d="${wallD}"/><path class="wall" d="${wallD}"/><path class="merlons" d="M${wl - 7},${wt - 7}H${wr + 7}V${wb + 7}H${wl - 7}Z"/>${[[wl, wt], [wr, wt], [wr, wb], [wl, wb]].map(p => `<circle class="tower" cx="${p[0]}" cy="${p[1]}" r="13"/>`).join("")}`;
+    const order = S.filter(s => s.open).concat(S.filter(s => !s.open));
+    const streets = order.map(s => `<path class="sc${s.open ? " open" : ""}" d="${s.d}"/>`).join("") + order.map(s => `<path class="sf${s.open ? " open" : ""}" d="${s.d}"/>`).join("");
+    const gh = (x, y) => `<g class="gatehouse" transform="translate(${f1(x)},${f1(y)})"><rect x="-8" y="-20" width="16" height="12" rx="1.5"/><rect x="-8" y="8" width="16" height="12" rx="1.5"/></g>`;
+    const gates = L.gin.map(g => gh(wl, g.y + GH / 2)).join("") + L.gout.map(g => gh(wr, g.y + GH / 2)).join("");
+    const hls = S.map(s => `<path class="sh" data-from="${esc(s.from)}" data-to="${esc(s.to)}" d="${s.d}"/>`).join("");
+    const doors = new Map();
+    S.forEach(s => { const k = Math.round(s.tx) + "," + Math.round(s.ty); let d = doors.get(k); if (!d) { d = { x: s.tx, y: s.ty, to: s.to, froms: [] }; doors.set(k, d); } d.froms.push(s.from); });
+    const chevs = Array.from(doors.values()).map(d => `<path class="chev" data-to="${esc(d.to)}" data-froms="${esc(d.froms.join(" "))}" d="M-5,-5L1,0L-5,5" transform="translate(${f1(d.x - 8)},${f1(d.y)})"/>`).join("");
+    const trees = planTrees(L, S, heads, a.id);
+    let s = PLAN_DEFS + `<rect class="p-land" width="${L.w}" height="${L.h}"/><g transform="translate(${f1(L.ox)},0)">`;
+    s += ground + trees + walls + `<g class="streets">${streets}</g>` + gates + `<g class="hls">${hls}</g>` + chevs + headSvg;
+    s += L.gin.map(g => gateSvg(g, "in")).join("") + L.gout.map(g => gateSvg(g, "out")).join("");
+    s += ts.map(t => tileSvg(t, L.pos.get(t))).join("") + `</g>` + planFrame(L.w, L.h);
+    svg.setAttribute("viewBox", `0 0 ${L.w} ${L.h}`);
+    svg.innerHTML = s;
+    sizePlan(L);
+    $$(".lot", svg).forEach(g => {
+      const t = byId.get(g.getAttribute("data-id"));
+      g.addEventListener("click", () => openTask(t));
+      g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openTask(t); } });
+      g.addEventListener("pointerenter", () => highlight(t));
+      g.addEventListener("pointerleave", () => highlight(current.task));
+      g.addEventListener("focus", () => highlight(t));
+      g.addEventListener("blur", () => highlight(current.task));
+    });
+    $$(".gate", svg).forEach(g => {
+      const t = byId.get(g.getAttribute("data-id"));
+      g.addEventListener("click", () => openTask(t));
+      g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openTask(t); } });
+    });
+    highlight(current.task);
+    if (had) {    // a redraw (resize, drawer opening) keeps keyboard focus where it was
+      const again = $(`#plan .${had.classList.contains("gate") ? "gate" : "lot"}[data-id="${CSS.escape ? CSS.escape(had.getAttribute("data-id")) : had.getAttribute("data-id")}"]`);
+      if (again) try { again.focus({ preventScroll: true }); } catch (e) { again.focus(); }
+    }
+  }
+  function highlight(t) {
+    const svg = $("#plan"), rel = new Set(), cur = current.task;
+    if (t) { t.deps.forEach(d => rel.add(d.id)); t.dependents.forEach(d => rel.add(d.id)); }
+    $$(".sh", svg).forEach(p => p.classList.toggle("on", !!t && (p.getAttribute("data-from") === t.id || p.getAttribute("data-to") === t.id)));
+    $$(".chev", svg).forEach(p => p.classList.toggle("on", !!t && (p.getAttribute("data-to") === t.id || (" " + p.getAttribute("data-froms") + " ").indexOf(" " + t.id + " ") >= 0)));
+    $$(".lot,.gate", svg).forEach(g => g.classList.toggle("rel", rel.has(g.getAttribute("data-id"))));
+    $$(".lot", svg).forEach(g => g.classList.toggle("sel", !!cur && g.getAttribute("data-id") === cur.id));
+  }
+  function renderPlanKey() {
+    const street = open => `<svg width="46" height="14" aria-hidden="true"><path class="sc${open ? " open" : ""}" d="M4,7H42"/><path class="sf${open ? " open" : ""}" d="M4,7H42"/></svg>`;
+    $("#pkey").innerHTML = `${houseKey()}<span class="k">${street(false)}Street: the prerequisite is finished</span><span class="k">${street(true)}Dashed edges: still waiting on it</span><span class="k">Gates lead to other towns</span>`;
+  }
+
+  /* ---------------- task drawer ---------------- */
+  function checkIcon(state) {
+    const box = '<rect x="1.5" y="1.5" width="15" height="15" rx="3.5" class="cb' + (state === "done" ? " on" : "") + '"/>';
+    const mark = state === "done" ? '<path d="M5 9.4l2.6 2.6L13 6.4" class="ck"/>' : state === "doing" ? '<path d="M5 9h8" class="ck2"/>' : state === "dropped" ? '<path d="M6 6l6 6M12 6l-6 6" class="ck2"/>' : "";
+    const label = { done: "Done", doing: "In progress", dropped: "Dropped", todo: "To do" }[state] || "To do";
+    return `<svg viewBox="0 0 18 18" role="img" aria-label="${label}">${box}${mark}</svg>`;
+  }
+  function taskLink(x, from) {
+    return `<button type="button" class="tlink" data-go="${esc(x.id)}"${onMap(x) ? "" : ' disabled title="Not on the map: its area or workstream is missing"'}><span class="mono">${esc(x.id)}</span><span class="tt"><i class="dot bg-${x.status}"></i>${esc(x.title)}</span><span class="ta">${esc(STAGE_LABEL[x.status])}${x.area && (!from || x.area !== from.area) ? " · " + esc(x.area.title) : ""}${x.owner ? " · " + esc(x.owner) : ""}</span></button>`;
+  }
+  function panelHtml(t) {
+    const st = t.status, subs = t.subtasks || [], si = subInfo(t);
+    const od = openDeps(t), ms = t.milestone ? byId.get(t.milestone) : null;
+    const dal = !t.dal || t.dal.length === 4 ? "All DALs" : "DAL " + t.dal.join(", ");
+    let deliv = "";
+    const dv = t.deliverable;
+    if (dv) {
+      if (dv.url) deliv = isWeb(dv.url) ? `<a href="${esc(dv.url)}" target="_blank" rel="noopener">${esc(dv.label)}</a>` : esc(dv.label || dv.url);
+      else if (dv.text) deliv = esc(dv.text);
+      else if (dv.path) deliv = dv.exists ? `<a href="${esc(obsUri(dv.path))}">${esc(dv.path)}</a>` : `${esc(dv.path)} <span class="muted">(not created yet)</span>`;
+    }
+    const tracker = t.tracker ? (t.tracker.url && isWeb(t.tracker.url) ? `<a href="${esc(t.tracker.url)}" target="_blank" rel="noopener">${esc(t.tracker.url)}</a>` : esc(t.tracker.text || t.tracker.url)) : "";
+    const subsHtml = subs.length
+      ? `<ul class="subs">${subs.map(x => `<li class="${esc(x.state)}">${checkIcon(x.state)}<span>${inline(x.text, t.path)}</span></li>`).join("")}</ul>`
+      : `<p class="empty">${st === "planned" ? "The owner breaks this into subtasks when they pick it up." : "No subtasks yet. Add them as a checklist in the note."}</p>`;
+    const gl = isWeb(gitlabUrl(t.path)) ? gitlabUrl(t.path) : "";
+    return `<div class="p-top"><span class="p-kind"><svg class="ico" viewBox="0 0 16 16" aria-hidden="true">${iconPaths(t.kind)}</svg>${esc(KIND_LABEL[t.kind] || "Task")} · <span class="mono">${esc(t.id)}</span></span><button type="button" class="icon-btn" id="pClose" aria-label="Close task details">×</button></div>
+<h2>${esc(t.title)}</h2>
+<div class="p-status"><i class="dot bg-${st}"></i><strong>${STAGE_LABEL[st]}</strong><span class="muted">${STAGE_HINT[st]}</span></div>
+${isReady(t) ? `<div class="flag good">${ICO_CHECK}<span>Ready to start: everything it needs is done.</span></div>` : ""}
+${isWaiting(t) ? `<div class="flag warn">${ICO_WAIT}<span>Waiting on ${od.length} unfinished prerequisite${od.length > 1 ? "s" : ""}.</span></div>` : ""}
+${onlyAB(t) ? `<div class="flag">Only needed at DAL A or B.</div>` : ""}
+<dl class="facts"><dt>Owner</dt><dd>${esc(t.owner || "Unassigned")}</dd><dt>Milestone</dt><dd>${ms ? esc(msName(ms)) : "None"}</dd>${typeof t.estimate === "number" ? `<dt>Estimate</dt><dd>${esc(fmtEst(t.estimate))}</dd>` : ""}<dt>Applies to</dt><dd>${esc(dal)}</dd>${deliv ? `<dt>Deliverable</dt><dd>${deliv}</dd>` : ""}${tracker ? `<dt>Tracked in</dt><dd>${tracker}</dd>` : ""}</dl>
+<div class="md">${md(t.description, t.path)}</div>
+<h3>Subtasks${si.n ? ` · ${si.done} of ${si.n} done` : ""}</h3>${subsHtml}
+<h3>Needs first</h3>${t.deps.length ? `<div class="links">${t.deps.map(x => taskLink(x, t)).join("")}</div>` : `<p class="empty">Nothing. It can start any time.</p>`}
+<h3>Unlocks</h3>${t.dependents.length ? `<div class="links">${t.dependents.map(x => taskLink(x, t)).join("")}</div>` : `<p class="empty">Nothing waits on this yet.</p>`}
+<div class="p-actions"><a class="btn primary" href="${esc(obsUri(t.path))}">Open in Obsidian</a>${gl ? `<a class="btn" href="${esc(gl)}" target="_blank" rel="noopener">View in GitLab</a>` : ""}</div>
+<div class="pathrow"><code id="pPath">${esc(t.path)}</code><button type="button" class="btn small" id="pCopy">Copy path</button></div>`;
+  }
+  function selectText(el) { try { const r = document.createRange(); r.selectNodeContents(el); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); } catch (e) { /* nothing to do */ } }
+  function openPanel(t) {
+    current.task = t;
+    const p = $("#panel");
+    p.innerHTML = panelHtml(t);
+    p.hidden = false; $("#v-city").classList.add("has-panel"); p.scrollTop = 0;
+    $("#pClose", p).addEventListener("click", () => go("#area." + enc(t.area.id)));
+    $$("[data-go]", p).forEach(b => b.addEventListener("click", () => openTask(byId.get(b.getAttribute("data-go")))));
+    $("#pCopy", p).addEventListener("click", e => {
+      const btn = e.currentTarget, code = $("#pPath", p);
+      const fin = ok => { btn.textContent = ok ? "Copied" : "Selected: press Ctrl+C"; setTimeout(() => { btn.textContent = "Copy path"; }, 1800); };
+      try { navigator.clipboard.writeText(t.path).then(() => fin(true), () => { selectText(code); fin(false); }); } catch (err) { selectText(code); fin(false); }
+    });
+    fitPlan();
+    highlight(t);
+  }
+  /* Redraw the plan when its box changes width (drawer opened or closed, window resized), otherwise just rescale it. */
+  function fitPlan() {
+    const a = current.area, L = a && a._plan;
+    if (current.view !== "city" || !L) return;
+    const avail = Math.max(300, Math.floor($("#planScroll").clientWidth - 3));
+    if (Math.abs(avail - (L.avail || 0)) > 2 && (avail > L.natural || (L.avail || 0) > L.natural)) renderCity(a);
+    else sizePlan(L);
+  }
+  function closePanel() {
+    $("#panel").hidden = true; $("#v-city").classList.remove("has-panel"); current.task = null;
+    fitPlan();
+    highlight(null);
+  }
+  function scrollToTask(t) {
+    const g = $(`#plan .lot[data-id="${CSS.escape ? CSS.escape(t.id) : t.id}"]`), box = $("#planScroll");
+    if (!g || !box) return;
+    const gr = g.getBoundingClientRect(), br = box.getBoundingClientRect();
+    if (gr.left < br.left || gr.right > br.right) box.scrollLeft += gr.left - br.left - (br.width - gr.width) / 2;
+    if (gr.top < br.top || gr.bottom > br.bottom) box.scrollTop += gr.top - br.top - (br.height - gr.height) / 2;
+  }
+
+  /* ---------------- pages ---------------- */
+  function scopeLine() {
+    const bits = [];
+    if (F.ms !== "all") { const m = byId.get(F.ms); bits.push("milestone " + (m ? msName(m) : F.ms)); }
+    if (F.scope === "cd") bits.push("work needed at DAL C and D");
+    if (F.owner !== "all") bits.push("tasks owned by " + F.owner);
+    return bits.length ? "Showing " + bits.join(", ") + "." : "Showing every task.";
+  }
+  const mapOrder = () => (WORLD && WORLD.ordered) ? WORLD.ordered : WS.filter(w => w.areas.length);
+  function row(name, s, sub, title, w) { return `<div class="row"${title ? ` title="${esc(title)}"` : ""}><div class="rn">${w ? wsDot(w) : ""}${esc(name)}${sub ? `<small>${esc(sub)}</small>` : ""}</div>${sbar(s)}<div class="rc">${s.built} of ${s.n} built</div></div>`; }
+  const li = (t, note) => `<li>${taskLink(t).replace("</span></button>", (note ? " · " + esc(note) : "") + "</span></button>")}</li>`;
+  function countsTable(ts) {
+    const head = `<tr><th scope="col">Workstream</th>${STAGES.map(s => `<th scope="col">${STAGE_LABEL[s]}</th>`).join("")}<th scope="col">Total</th></tr>`;
+    const body = mapOrder().map(w => { const s = stats(ts.filter(t => t.ws === w)); return `<tr><td>${wsDot(w)}${esc(w.title)}</td>${STAGES.map(x => `<td>${s.c[x]}</td>`).join("")}<td>${s.n}</td></tr>`; }).join("");
+    const all = stats(ts);
+    return `<table class="counts"><thead>${head}</thead><tbody>${body}</tbody><tfoot><tr><td>All workstreams</td>${STAGES.map(x => `<td>${all.c[x]}</td>`).join("")}<td>${all.n}</td></tr></tfoot></table>`;
+  }
+  function effortSection(ts) {
+    if (!hasEst) return "";
+    const all = effort(ts);
+    const line = (name, e, w) => `<tr><td>${w ? wsDot(w) : ""}${esc(name)}</td><td>${fmtNum(e.n)}</td><td>${fmtNum(e.built)}</td><td>${fmtNum(e.left)}</td><td>${e.none}</td></tr>`;
+    const head = `<tr><th scope="col"></th><th scope="col">Estimated</th><th scope="col">Built</th><th scope="col">To go</th><th scope="col">Tasks with no estimate</th></tr>`;
+    const byWs = mapOrder().map(w => line(w.title, effort(ts.filter(t => t.ws === w)), w)).join("");
+    const byMs = MS.map(m => line(msName(m), effort(ts.filter(t => t.milestone === m.id)))).join("");
+    const noMs = ts.filter(t => !t.milestone);
+    return `<section class="section"><h2>Effort</h2><div class="overall"><span class="big">${pctOf(all.built, all.n)}%</span><span><strong>${esc(fmtNum(all.built))} of ${esc(fmtEst(all.n))}</strong> built by estimate · ${esc(fmtNum(all.left))} to go${all.none ? ` · ${all.none} task${all.none === 1 ? " has" : "s have"} no estimate yet` : ""}</span></div>${sbar(all, "big", EST_UNIT)}
+<div class="tablewrap" style="margin-top:16px"><table class="counts"><thead>${head.replace("<th scope=\"col\"></th>", "<th scope=\"col\">Workstream</th>")}</thead><tbody>${byWs}</tbody></table></div>
+${MS.length ? `<div class="tablewrap" style="margin-top:16px"><table class="counts"><thead>${head.replace("<th scope=\"col\"></th>", "<th scope=\"col\">Milestone</th>")}</thead><tbody>${byMs}${noMs.length ? line("No milestone", effort(noMs)) : ""}</tbody></table></div>` : ""}
+<p class="muted">Estimates are in ${esc(EST_UNIT)}. Built means done or adopted.</p></section>`;
+  }
+  function renderProgress() {
+    const ts = MAPPED.filter(match), st = stats(ts), pct = pctOf(st.built, st.n);
+    const wsRows = mapOrder().map(w => row(w.title, stats(ts.filter(t => t.ws === w)), `${w.areas.length} area${w.areas.length === 1 ? "" : "s"}`, "", w)).join("");
+    const msRows = MS.map(m => row(msName(m), stats(ts.filter(t => t.milestone === m.id)), m.target ? "Target " + m.target : "Target date to be agreed", m.summary)).join("");
+    const noMs = stats(ts.filter(t => !t.milestone));
+    const ready = ts.filter(isReady).sort(cmpId), waiting = ts.filter(isWaiting).sort(cmpId);
+    const holders = ts.filter(t => !COMPLETE(t.status)).map(t => ({ t, n: Array.from(downstream(t)).filter(d => !COMPLETE(d.status)).length })).filter(x => x.n > 0).sort((a, b) => (b.n - a.n) || cmpId(a.t, b.t)).slice(0, 6);
+    const fogged = AR.filter(a => a.ws && !a.tasks.length);
+    $("#v-progress").innerHTML = `<div class="page-head"><h1>Progress</h1><p class="lede">${esc(scopeLine())} Drawn from the roadmap notes on ${esc(fmtDate(D.meta.generated, true))}${D.meta.commit ? ", commit " + esc(D.meta.commit) : ""}. Done and adopted both count as built.</p></div>
+<section class="section"><div class="overall"><span class="big">${pct}%</span><span><strong>${st.built} of ${st.n}</strong> tasks built · ${st.c.adopted} adopted into routine use · ${st.c["in-progress"] + st.c.review} under way</span></div>${sbar(st, "big")}<div class="legend" style="margin-top:10px;font-size:13px;color:var(--ink-2)">${legendHtml()}</div></section>
+<section class="section"><h2>By workstream</h2><div class="rows">${wsRows}</div></section>
+<section class="section"><h2>By milestone</h2><div class="rows">${msRows}${noMs.n ? row("No milestone", noMs, "") : ""}</div></section>
+${effortSection(ts)}
+<section class="section cols">
+<div><h2>Ready to start</h2>${ready.length ? `<ul class="list">${ready.map(t => li(t)).join("")}</ul>` : `<p class="empty">${ts.some(x => x.status === "planned") ? "Nothing is ready: every planned task is waiting on something." : "No task is still waiting to start."}</p>`}</div>
+<div><h2>Holding up the most work</h2>${holders.length ? `<ul class="list">${holders.map(x => li(x.t, "holds up " + x.n)).join("")}</ul>` : `<p class="empty">Nothing is holding up other work.</p>`}</div>
+<div><h2>Started, but waiting on a prerequisite</h2>${waiting.length ? `<ul class="list">${waiting.map(t => li(t, "needs " + openDeps(t).map(d => d.id).join(", "))).join("")}</ul>` : `<p class="empty">No started task is waiting on another.</p>`}</div>
+<div><h2>Not yet broken into tasks</h2>${fogged.length ? `<ul class="list">${fogged.map(a => `<li><button type="button" class="tlink" data-area="${esc(a.id)}"><span class="mono">${esc(a.id)}</span><span class="tt">${esc(a.title)}</span><span class="ta">${esc(a.ws.title)}</span></button></li>`).join("")}</ul>` : `<p class="empty">Every area has tasks.</p>`}</div>
+</section>
+<section class="section"><h2>Counts by workstream</h2><div class="tablewrap">${countsTable(ts)}</div></section>`;
+    bindLinks($("#v-progress"));
+  }
+
+  /* the flat list */
+  const LIST = { key: "id", dir: 1, q: "", rows: [] };
+  const wsRank = w => { const i = mapOrder().indexOf(w); return i < 0 ? 99 : i; };
+  const byText = f => (a, b) => { const x = f(a), y = f(b); return (!x) - (!y) || x.localeCompare(y, undefined, { numeric: true }); };
+  const nextOf = t => isReady(t) ? "Ready" : isWaiting(t) ? "Waiting" : "";
+  const LCOLS = [
+    { k: "id", h: "ID", v: t => t.id, cmp: cmpId },
+    { k: "title", h: "Task", v: t => t.title, cmp: byText(t => t.title) },
+    { k: "ws", h: "Workstream", v: t => t.ws ? t.ws.title : "", cmp: (a, b) => wsRank(a.ws) - wsRank(b.ws) },
+    { k: "area", h: "Area", v: t => t.area ? t.area.title : "", cmp: (a, b) => (wsRank(a.ws) - wsRank(b.ws)) || byText(t => t.area.title)(a, b) },
+    { k: "status", h: "Status", v: t => STAGE_LABEL[t.status], cmp: (a, b) => STAGES.indexOf(a.status) - STAGES.indexOf(b.status) },
+    { k: "owner", h: "Owner", v: t => t.owner || "", cmp: byText(t => t.owner || "") },
+    { k: "ms", h: "Milestone", v: t => t.milestone || "", cmp: byText(t => t.milestone || "") },
+    { k: "dal", h: "DAL", v: t => !t.dal || t.dal.length === 4 ? "All" : t.dal.join(", "), cmp: byText(t => !t.dal || t.dal.length === 4 ? "All" : t.dal.join(", ")) },
+    { k: "est", h: "Estimate (" + EST_UNIT + ")", v: t => typeof t.estimate === "number" ? fmtNum(t.estimate) : "", cmp: (a, b) => (typeof a.estimate === "number" ? a.estimate : -1) - (typeof b.estimate === "number" ? b.estimate : -1) },
+    { k: "subs", h: "Subtasks", v: t => { const s = subInfo(t); return s.n ? s.done + " of " + s.n : ""; }, cmp: (a, b) => { const p = subInfo(a), q = subInfo(b); return (p.n ? p.done / p.n : -1) - (q.n ? q.done / q.n : -1); } },
+    { k: "next", h: "Next", v: nextOf, cmp: (a, b) => ["Ready", "Waiting", ""].indexOf(nextOf(a)) - ["Ready", "Waiting", ""].indexOf(nextOf(b)) },
+    { k: "needs", h: "Needs first", v: t => t.deps.map(d => d.id).join(", "), cmp: (a, b) => a.deps.length - b.deps.length }
+  ];
+  const LCOL = {}; LCOLS.forEach(c => { LCOL[c.k] = c; });
+  function listRows() {
+    const words = LIST.q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    let rows = MAPPED.filter(match);
+    if (words.length) rows = rows.filter(t => { const hay = LCOLS.map(c => c.v(t)).join(" ").toLowerCase(); return words.every(w => hay.indexOf(w) >= 0); });
+    const col = LCOLS.find(c => c.k === LIST.key) || LCOLS[0];
+    return rows.sort((a, b) => (col.cmp(a, b) * LIST.dir) || cmpId(a, b));
+  }
+  function renderList() {
+    const v = $("#v-list");
+    if (!$("#lbody")) {
+      v.innerHTML = `<div class="page-head"><h1>All tasks</h1><p class="lede">Every task on the map in one table. Click a heading to sort, type to filter, and click a row to open the task on its town plan. The milestone, DAL and owner filters above apply here too.</p></div>
+<div class="list-tools"><label class="lfilter" for="lq">Filter <input id="lq" type="search" placeholder="Id, title, owner, status…" autocomplete="off"></label><span class="muted" id="lcount" aria-live="polite"></span><button type="button" class="btn" id="lcopy">Copy as spreadsheet</button></div>
+<textarea id="lfallback" class="fallback" hidden readonly aria-label="The table as tab-separated text"></textarea>
+<div class="listwrap"><table class="tasks"><thead><tr>${LCOLS.map(c => `<th scope="col" data-k="${c.k}"><button type="button">${c.h}<span class="arr" aria-hidden="true"></span></button></th>`).join("")}</tr></thead><tbody id="lbody"></tbody></table></div>`;
+      $("#lq").addEventListener("input", e => { LIST.q = e.target.value; renderListBody(); });
+      $$("th button", v).forEach(b => b.addEventListener("click", () => { const k = b.parentNode.getAttribute("data-k"); if (LIST.key === k) LIST.dir = -LIST.dir; else { LIST.key = k; LIST.dir = 1; } renderListBody(); }));
+      $("#lcopy").addEventListener("click", copyList);
+      $("#lbody").addEventListener("click", e => { if (e.target.closest("a")) return; const tr = e.target.closest("tr[data-id]"); if (tr) openTask(byId.get(tr.getAttribute("data-id"))); });
+    }
+    $("#lq").value = LIST.q;
+    renderListBody();
+  }
+  function renderListBody() {
+    const rows = LIST.rows = listRows();
+    $$("#v-list th").forEach(th => {
+      const k = th.getAttribute("data-k"), on = k === LIST.key;
+      if (on) th.setAttribute("aria-sort", LIST.dir > 0 ? "ascending" : "descending"); else th.removeAttribute("aria-sort");
+      $(".arr", th).textContent = on ? (LIST.dir > 0 ? " ▲" : " ▼") : "";
+    });
+    $("#lbody").innerHTML = rows.length ? rows.map(t => {
+      const s = subInfo(t), nx = nextOf(t);
+      return `<tr data-id="${esc(t.id)}"><td class="mono nowrap">${esc(t.id)}</td><td><a href="#task.${enc(t.id)}">${esc(t.title)}</a></td><td class="nowrap">${wsDot(t.ws)}${esc(t.ws.title)}</td><td>${esc(t.area.title)}</td><td class="nowrap"><i class="dot bg-${t.status}"></i> ${STAGE_LABEL[t.status]}</td><td>${esc(t.owner || "")}</td><td>${esc(t.milestone || "")}</td><td class="nowrap">${esc(LCOL.dal.v(t))}</td><td class="num">${esc(LCOL.est.v(t))}</td><td class="nowrap">${s.n ? s.done + "/" + s.n : ""}</td><td class="${nx === "Ready" ? "nx-ready" : nx ? "nx-wait" : ""}">${nx}</td><td class="mono">${esc(t.deps.map(d => d.id).join(", "))}</td></tr>`;
+    }).join("") : `<tr><td colspan="${LCOLS.length}" class="empty">No tasks match.</td></tr>`;
+    $("#lcount").textContent = `${rows.length} of ${MAPPED.length} tasks`;
+  }
+  function copyList() {
+    const cellText = x => { const v = String(x).replace(/[\t\r\n]+/g, " "); return /^[=+@]|^-(?![\d.])/.test(v) ? "'" + v : v; };   // not run as a formula
+    const rows = LIST.rows, text = [LCOLS.map(c => c.h)].concat(rows.map(t => LCOLS.map(c => c.v(t)))).map(r => r.map(cellText).join("\t")).join("\n");
+    const btn = $("#lcopy"), ta = $("#lfallback");
+    const fin = msg => { btn.textContent = msg; setTimeout(() => { btn.textContent = "Copy as spreadsheet"; }, 2400); };
+    const fallback = () => { ta.value = text; ta.hidden = false; ta.focus(); ta.select(); fin("Selected below: press Ctrl+C"); };
+    try { navigator.clipboard.writeText(text).then(() => { ta.hidden = true; fin("Copied " + rows.length + " rows"); }, fallback); } catch (e) { fallback(); }
+  }
+
+  function noteCard(r) {
+    const plus = r.plus_ones || [], t = r.mapped_to ? byId.get(r.mapped_to) : null;
+    let state;
+    if (r.status === "open") state = `<div class="state">Waiting for review</div>`;
+    else if (r.status === "closed") state = `<div class="state">Closed</div>`;
+    else if (t && t._t === "task") state = `<div class="state">Being answered by ${onMap(t) ? `<button type="button" class="linkish" data-go="${esc(t.id)}">${esc(t.id)} ${esc(t.title)}</button>` : esc(t.id + " " + t.title)} <span class="muted">(${esc((STAGE_LABEL[t.status] || t.status).toLowerCase())})</span></div>`;
+    else state = `<div class="state">Mapped to a task</div>`;
+    return `<article class="note ${esc(r.status)}"><h3>${esc(r.title)}</h3>${r.description ? `<div class="md">${md(r.description, r.path)}</div>` : ""}<div class="meta">Raised by ${esc(r.raised_by || "someone")}${r.raised ? " on " + esc(fmtDate(r.raised)) : ""}</div>${plus.length ? `<div class="votes"><strong>+${plus.length}</strong> ${plus.length === 1 ? "also wants" : "also want"} this: ${esc(plus.join(", "))}</div>` : ""}${state}</article>`;
+  }
+  function renderBoard() {
+    const rank = s => s === "open" ? 0 : s === "mapped" ? 1 : 2;
+    const reqs = RQ.slice().sort((a, b) => (rank(a.status) - rank(b.status)) || ((b.plus_ones || []).length - (a.plus_ones || []).length) || cmpId(a, b));
+    const open = reqs.filter(r => r.status === "open").length;
+    $("#v-board").innerHTML = `<div class="page-head"><h1>Notice board</h1><p class="lede">Ask for the template, checklist or guide you wish existed. Requests are reviewed every week, then answered or turned into tasks on the map. To add one, create a note in <code>roadmap/requests/</code> from the request template. To back one, add your name to its <code>plus_ones</code>.</p></div>
+<p class="muted">${reqs.length} request${reqs.length === 1 ? "" : "s"} · ${open} waiting for review</p>
+<div class="board">${reqs.map(noteCard).join("") || `<p class="empty">No requests yet.</p>`}</div>`;
+    bindLinks($("#v-board"));
+  }
+  function renderChecks() {
+    const iss = D.issues || [];
+    const groups = [["error", "Errors", "These stop the build in CI. Fix the note, then rebuild."], ["warning", "Warnings", "Worth tidying. The atlas still builds."], ["info", "Notes", "For information only."]];
+    const item = i => { const x = i.id ? byId.get(i.id) : null; const btn = onMap(x) ? `<button type="button" class="btn small" data-go="${esc(x.id)}">Show</button>` : x && x._t === "area" && x.ws ? `<button type="button" class="btn small" data-area="${esc(x.id)}">Show</button>` : ""; return `<li class="issue ${esc(i.severity)}"><span class="sev">${esc(i.code)}</span><span class="msg">${esc(i.message)}</span>${btn}<span class="where">${esc(i.path)}</span></li>`; };
+    const body = iss.length ? groups.map(([sev, name, help]) => { const list = iss.filter(i => i.severity === sev); return list.length ? `<section class="section"><h2>${name} <span class="muted">(${list.length})</span></h2><p class="muted">${help}</p><ul class="issues">${list.map(item).join("")}</ul></section>` : ""; }).join("") : `<section class="section"><p>Every note checks out.</p></section>`;
+    $("#v-checks").innerHTML = `<div class="page-head"><h1>Checks</h1><p class="lede">Each build reads the roadmap notes and checks their ids, parents, dependencies, statuses and deliverables.</p></div>${body}`;
+    bindLinks($("#v-checks"));
+  }
+  function bindLinks(root) {
+    $$("[data-go]", root).forEach(b => b.addEventListener("click", () => openTask(byId.get(b.getAttribute("data-go")), current.view === "region")));
+    $$("[data-area]", root).forEach(b => b.addEventListener("click", () => openArea(byId.get(b.getAttribute("data-area")), current.view === "region")));
+    $$("[data-ws-go]", root).forEach(b => b.addEventListener("click", () => openRegion(byId.get(b.getAttribute("data-ws-go")))));
+  }
+  function updateCounts() {
+    const open = RQ.filter(r => r.status === "open").length, bc = $("#boardCount");
+    bc.textContent = String(open); bc.hidden = !open; bc.title = open + " waiting for review";
+    const iss = D.issues || [], e = iss.filter(i => i.severity === "error").length, w = iss.filter(i => i.severity === "warning").length, cc = $("#checksCount");
+    cc.textContent = String(e + w); cc.hidden = !(e + w); cc.className = "count" + (e ? " bad" : w ? " warn" : "");
+    cc.title = `${e} error${e === 1 ? "" : "s"}, ${w} warning${w === 1 ? "" : "s"}`;
+  }
+
+  /* ---------------- navigation ---------------- */
+  const VIEWS = ["map", "region", "city", "progress", "list", "board", "checks"], PAGES = ["progress", "list", "board", "checks"];
+  let current = { view: null, ws: null, area: null, task: null }, pending = {};
+  function go(hash) { if (location.hash === hash) route(); else location.hash = hash; }
+  function openRegion(w, a) { if (!w || !w.areas.length) return; pending = { zoom: current.view === "map", area: a || null }; go("#region." + enc(w.id)); }
+  function openArea(a, zoom) { if (!a || !a.ws) return; pending = { zoom: !!zoom }; go("#area." + enc(a.id)); }
+  function openTask(t, zoom) { if (!onMap(t)) return; pending = { zoom: !!zoom }; go("#task." + enc(t.id)); }
+  function setView(name) {
+    VIEWS.forEach(v => { $("#v-" + v).hidden = v !== name; });
+    $$(".tab").forEach(t => { const tv = t.getAttribute("data-view"); if (tv === name || ((name === "city" || name === "region") && tv === "map")) t.setAttribute("aria-current", "page"); else t.removeAttribute("aria-current"); });
+    hideTip();
+  }
+  /* Level 1 chart, 2 territory, 3 town, 4 task; 0 for the pages. Sets the colour cues on the page body. */
+  function renderDepth() {
+    const v = current.view, lvl = v === "map" ? 1 : v === "region" ? 2 : v === "city" ? (current.task ? 4 : 3) : 0;
+    const ws = v === "region" ? current.ws : v === "city" && current.area ? current.area.ws : null;
+    document.body.setAttribute("data-depth", String(lvl));
+    if (ws) document.body.setAttribute("data-ws", String(ws._ci - 1)); else document.body.removeAttribute("data-ws");
+    const el = $("#depth");
+    if (!lvl) { el.hidden = true; el.innerHTML = ""; return; }
+    el.hidden = false;
+    const steps = [
+      [1, "Chart", "Chart", "#map"],
+      [2, "Territory", ws ? ws.title : "Territory", ws ? "#region." + enc(ws.id) : ""],
+      [3, "Town", current.area ? current.area.title : "Town", current.area ? "#area." + enc(current.area.id) : ""],
+      [4, "Task", current.task ? current.task.id : "Task", ""]
+    ];
+    el.innerHTML = steps.map(([n, level, name, href], i) => {
+      const state = n < lvl ? "past" : n === lvl ? "here" : "todo";
+      const label = `Level ${n} of 4, ${level}${state === "todo" ? "" : ": " + name}`;
+      const inner = `<i aria-hidden="true">${n}</i><span>${esc(name)}</span>`;
+      const node = state === "past" && href ? `<a class="step past" href="${href}" title="${esc(label)}" aria-label="${esc(label)}">${inner}</a>` : `<span class="step ${state}" title="${esc(label)}" aria-label="${esc(label)}"${state === "here" ? ' aria-current="location"' : ""}>${inner}</span>`;
+      return (i ? '<span class="sep" aria-hidden="true">›</span>' : "") + node;
+    }).join("");
+  }
+  /* Zooming: the stage scales up into the place clicked and fades, then the next level appears. Going up runs it backwards.
+     Each route() starts a new navigation; a zoom that is overtaken by one (Back, Esc, a tab) is dropped, not finished. */
+  let navSeq = 0, zooming = null, wantFocus = false;
+  /* After a navigation, keyboard focus moves to the new view's heading (or to what the caller names), so it is never
+     left on an element that has just been redrawn away. Re-renders for filters don't move it. */
+  function takeFocus(el) {
+    if (!wantFocus) return;
+    wantFocus = false;
+    const v = $("#v-" + current.view);
+    el = el || (v && ($("h1", v) || v));
+    if (!el) return;
+    if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+    try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); }
+  }
+  const lotFor = t => t && $(`#plan .lot[data-id="${CSS.escape ? CSS.escape(t.id) : t.id}"]`);
+  function settle(stage) { stage.style.transition = "none"; stage.style.transform = ""; stage.style.opacity = ""; stage.style.pointerEvents = ""; void stage.offsetWidth; stage.style.transition = ""; }
+  function zoomIn(stage, ox, oy, scale, then, prep) {
+    hideTip();
+    if (reduceMotion) { if (prep) prep(); then(); return; }
+    const seq = navSeq;
+    zooming = stage;
+    stage.style.pointerEvents = "none";
+    stage.style.transformOrigin = `${ox}% ${oy}%`;
+    stage.style.transform = `scale(${scale})`;
+    stage.style.opacity = "0";
+    const t0 = performance.now();
+    setTimeout(() => {
+      if (seq !== navSeq) return;
+      if (prep) prep();
+      setTimeout(() => {
+        if (seq !== navSeq) return;
+        zooming = null; settle(stage);
+        then(); hideTip();
+      }, Math.max(0, 440 - (performance.now() - t0)));
+    }, 40);
+  }
+  function zoomOut(stage, ox, oy, scale) {
+    if (reduceMotion) return;
+    stage.style.transition = "none"; stage.style.transformOrigin = `${ox}% ${oy}%`; stage.style.transform = `scale(${scale})`; stage.style.opacity = "0"; stage.style.pointerEvents = "none";
+    void stage.offsetWidth;
+    stage.style.transition = ""; stage.style.transform = ""; stage.style.opacity = "";
+    setTimeout(() => { stage.style.pointerEvents = ""; }, 560);
+  }
+  function fadeIn(stage) {
+    if (reduceMotion) return;
+    stage.style.transition = "none"; stage.style.transformOrigin = "50% 50%"; stage.style.transform = "scale(1.04)"; stage.style.opacity = "0";
+    void stage.offsetWidth;
+    stage.style.transition = ""; stage.style.transform = ""; stage.style.opacity = "";
+  }
+  function showMap() {
+    const prev = current; pending = {};
+    setView("map"); current = { view: "map", ws: null, area: null, task: null };
+    hoverWs = null;
+    renderWorld(); renderDepth();
+    drawTerrain();
+    const st = $("#stage");
+    if (prev.view === "region" && prev.ws) { const B = regionFor(prev.ws).B, o = zoomOriginFor(B); if (o) zoomOut(st, o[0], o[1], B.z); }
+    else if (prev.view === "city" && prev.area && prev.area._x !== undefined) zoomOut(st, prev.area._x / MW * 100, prev.area._y / MH * 100, 2.6);
+    takeFocus();
+  }
+  function showRegion(w) {
+    const prev = current, pz = pending, R = regionFor(w);
+    pending = {};
+    if (prev.view === "region" && prev.ws === w) { renderRegion(R, pz.area || null); renderDepth(); takeFocus(); return; }
+    const enter = () => {
+      setView("region"); current = { view: "region", ws: w, area: null, task: null };
+      renderRegionHead(R); renderRegion(R, pz.area || null); renderRegionPanel(R); renderDepth();
+      window.scrollTo(0, 0);
+      paintRegion(R);
+      const st = $("#rstage");
+      if (prev.view === "city" && prev.area && prev.area.ws === w) { const p = RP(R, prev.area._x, prev.area._y); zoomOut(st, p[0] / RW * 100, p[1] / RH * 100, 2.6); }
+      else fadeIn(st);
+      takeFocus();
+    };
+    const o = zoomOriginFor(R.B);
+    if (pz.zoom && prev.view === "map" && o) zoomIn($("#stage"), o[0], o[1], R.B.z, enter, () => ensureRegionFields(R));
+    else enter();
+  }
+  function showCity(a, task) {
+    const prev = current, pz = pending;
+    pending = {};
+    if (prev.view === "city" && prev.area === a) {
+      const was = current.task;
+      current.task = task || null;
+      if (task) { openPanel(task); scrollToTask(task); } else closePanel();
+      renderDepth();
+      takeFocus(task ? $("#panel h2") : lotFor(was));    // into the drawer, or back to the house it was opened from
+      return;
+    }
+    const enter = () => {
+      setView("city"); current = { view: "city", ws: a.ws, area: a, task: task || null };
+      renderCity(a);
+      if (task) openPanel(task); else closePanel();
+      renderDepth();
+      const v = $("#v-city");
+      if (!reduceMotion) { v.classList.add("enter"); requestAnimationFrame(() => requestAnimationFrame(() => v.classList.remove("enter"))); }
+      window.scrollTo(0, 0);
+      if (task) requestAnimationFrame(() => scrollToTask(task));
+      takeFocus(task ? $("#panel h2") : null);
+    };
+    if (pz.zoom && prev.view === "region" && prev.ws === a.ws) { const p = RP(regionFor(a.ws), a._x, a._y); zoomIn($("#rstage"), p[0] / RW * 100, p[1] / RH * 100, 2.6, enter); }
+    else if (pz.zoom && prev.view === "map" && a._x !== undefined) zoomIn($("#stage"), a._x / MW * 100, a._y / MH * 100, 2.8, enter);
+    else enter();
+  }
+  function showPage(name) {
+    pending = {};
+    setView(name); current = { view: name, ws: null, area: null, task: null }; renderDepth();
+    if (name === "progress") renderProgress(); else if (name === "list") renderList(); else if (name === "board") renderBoard(); else renderChecks();
+    window.scrollTo(0, 0);
+    takeFocus();
+  }
+  function route() {
+    navSeq++; wantFocus = true;
+    if (zooming) { settle(zooming); zooming = null; }
+    let h = location.hash.replace(/^#/, "");
+    try { h = decodeURIComponent(h); } catch (e) { /* keep raw */ }
+    const m = /^(region|area|task)\.(.+)$/.exec(h);
+    if (m) {
+      const x = byId.get(m[2]);
+      if (m[1] === "region" && x && x._t === "ws" && x.areas.length) return showRegion(x);
+      if (m[1] === "area" && x && x._t === "area" && x.ws) return showCity(x, null);
+      if (m[1] === "task" && x && x._t === "task" && x.area && x.area.ws) return showCity(x.area, x);
+    }
+    if (PAGES.indexOf(h) >= 0) return showPage(h);
+    return showMap();
+  }
+  function refresh() {
+    saveFilters();
+    if (current.view === "map") renderWorld();
+    else if (current.view === "region") { const R = regionFor(current.ws); renderRegionHead(R); renderRegion(R, null); renderRegionPanel(R); }
+    else if (current.view === "city") { renderCity(current.area); if (current.task) openPanel(current.task); renderDepth(); }
+    else if (current.view === "list") renderListBody();
+    else if (current.view) showPage(current.view);
+  }
+
+  /* ---------------- filters, search, help ---------------- */
+  function saveFilters() { try { localStorage.setItem("fpga-atlas-filters", JSON.stringify(F)); } catch (e) { /* storage unavailable */ } }
+  function initFilters() {
+    try {
+      const s = JSON.parse(localStorage.getItem("fpga-atlas-filters") || "null");
+      if (s) {
+        if (s.ms === "all" || MS.some(m => m.id === s.ms)) F.ms = s.ms;
+        if (s.scope === "all" || s.scope === "cd") F.scope = s.scope;
+        if (s.owner === "all" || owners.indexOf(s.owner) >= 0) F.owner = s.owner;
+      }
+    } catch (e) { /* storage unavailable */ }
+    const fms = $("#fMs"), fo = $("#fOwner");
+    fms.innerHTML = `<option value="all">All</option>` + MS.map(m => `<option value="${esc(m.id)}">${esc(msName(m))}</option>`).join("");
+    fo.innerHTML = `<option value="all">Everyone</option>` + owners.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join("");
+    fms.value = F.ms; fo.value = F.owner;
+    $$(".seg button").forEach(b => b.setAttribute("aria-pressed", String(b.getAttribute("data-scope") === F.scope)));
+    fms.addEventListener("change", () => { F.ms = fms.value; refresh(); });
+    fo.addEventListener("change", () => { F.owner = fo.value; refresh(); });
+    $$(".seg button").forEach(b => b.addEventListener("click", () => { F.scope = b.getAttribute("data-scope"); $$(".seg button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); refresh(); }));
+  }
+  function initSearch() {
+    const q = $("#q"), res = $("#results");
+    let hits = [], sel = 0;
+    const items = MAPPED.map(t => ({ kind: "task", x: t, hay: [t.id, t.title, KIND_LABEL[t.kind] || "", t.owner || "", t.summary || ""].join(" ").toLowerCase() }))
+      .concat(AR.filter(a => a.ws).map(a => ({ kind: "area", x: a, hay: [a.id, a.title, a.summary || ""].join(" ").toLowerCase() })))
+      .concat(WS.filter(w => w.areas.length).map(w => ({ kind: "ws", x: w, hay: [w.id, w.title, w.summary || ""].join(" ").toLowerCase() })));
+    const score = (it, v) => (it.x.id.toLowerCase() === v ? 100 : 0) + (it.x.title.toLowerCase().indexOf(v) === 0 ? 20 : 0) + (it.x.title.toLowerCase().indexOf(v) >= 0 ? 10 : 0) + (it.kind === "ws" ? 2 : it.kind === "area" ? 1 : 0);
+    const where = h => h.kind === "task" ? esc((h.x.area ? h.x.area.title : "") + " · " + STAGE_LABEL[h.x.status]) : h.kind === "area" ? "Area in " + esc(h.x.ws.title) : "Workstream · " + h.x.areas.length + " areas";
+    const show = on => { res.hidden = !on; q.setAttribute("aria-expanded", String(on)); if (!on) q.removeAttribute("aria-activedescendant"); };
+    const mark = () => {
+      $$("[role=option]", res).forEach((b, i) => { b.classList.toggle("on", i === sel); b.setAttribute("aria-selected", String(i === sel)); });
+      if (hits.length) q.setAttribute("aria-activedescendant", "opt-" + sel); else q.removeAttribute("aria-activedescendant");
+    };
+    function pick(i) {
+      const h = hits[i]; if (!h) return;
+      show(false); q.value = ""; q.blur();
+      if (h.kind === "task") openTask(h.x); else if (h.kind === "area") openArea(h.x, current.view === "map"); else openRegion(h.x);
+    }
+    function draw() {
+      const v = q.value.trim().toLowerCase();
+      if (!v) { show(false); return; }
+      const words = v.split(/\s+/);
+      hits = items.filter(it => words.every(w => it.hay.indexOf(w) >= 0)).sort((a, b) => score(b, v) - score(a, v)).slice(0, 8);
+      sel = 0;
+      res.innerHTML = hits.length
+        ? hits.map((h, i) => `<button type="button" role="option" id="opt-${i}" tabindex="-1" aria-selected="${i === sel}" class="${i === sel ? "on" : ""}" data-i="${i}"><span class="rid">${esc(h.x.id)}</span><span class="rt">${esc(h.x.title)}</span><span class="rs">${where(h)}</span></button>`).join("")
+        : `<div class="none" role="option" aria-disabled="true">Nothing matches “${esc(q.value.trim())}”.</div>`;
+      show(true); mark();
+      $$("button", res).forEach(b => b.addEventListener("mousedown", e => { e.preventDefault(); pick(+b.getAttribute("data-i")); }));
+    }
+    q.addEventListener("input", draw);
+    q.addEventListener("focus", draw);
+    q.addEventListener("blur", () => setTimeout(() => show(false), 120));
+    q.addEventListener("keydown", e => {
+      // Esc here only closes the search; it mustn't also take the map up a level
+      if (e.key === "Escape") { e.stopPropagation(); e.preventDefault(); if (!res.hidden) show(false); else { q.value = ""; q.blur(); } return; }
+      if (res.hidden || !hits.length) return;
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault(); sel = (sel + (e.key === "ArrowDown" ? 1 : -1) + hits.length) % hits.length;
+        mark();
+      } else if (e.key === "Enter") { e.preventDefault(); pick(sel); }
+    });
+  }
+  function closeHelp() { $("#help").hidden = true; $("#helpBtn").focus(); }
+  function initHelp() {
+    const h = $("#help");
+    $("#helpBtn").addEventListener("click", () => { h.hidden = false; $("#helpClose").focus(); });
+    $("#helpClose").addEventListener("click", closeHelp);
+    h.addEventListener("click", e => { if (e.target === h) closeHelp(); });
+    h.addEventListener("keydown", e => {
+      if (e.key !== "Tab") return;
+      const f = $$("a[href],button,input,select,textarea,[tabindex]:not([tabindex='-1'])", h).filter(x => !x.disabled);
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+  }
+  document.addEventListener("keydown", e => {
+    const tag = (e.target && e.target.tagName) || "";
+    if (!$("#help").hidden) { if (e.key === "Escape") closeHelp(); return; }
+    if (e.key === "Escape") {
+      if (/^(INPUT|SELECT|TEXTAREA)$/.test(tag)) return;
+      if (current.view === "city") go(current.task ? "#area." + enc(current.area.id) : "#region." + enc(current.area.ws.id));
+      else if (current.view === "region") go("#map");
+    } else if (e.key === "/" && !/^(INPUT|SELECT|TEXTAREA)$/.test(tag)) { e.preventDefault(); $("#q").focus(); }
+  });
+  document.addEventListener("pointerover", e => { const el = e.target.closest ? e.target.closest("[data-tip]") : null; if (el) showTip(esc(el.getAttribute("data-tip")), e); });
+  document.addEventListener("pointerout", e => { const el = e.target.closest ? e.target.closest("[data-tip]") : null; if (el && !el.contains(e.relatedTarget)) hideTip(); });
+  document.addEventListener("pointermove", e => { if (!tip.hidden) moveTip(e); });
+
+  /* ---------------- boot ---------------- */
+  let paintQueued = false;
+  function repaint() {
+    if (paintQueued) return; paintQueued = true;
+    requestAnimationFrame(() => { paintQueued = false; paintWorld(); if (current.view === "region" && current.ws) paintRegion(regionFor(current.ws)); });
+  }
+  function boot() {
+    const t = $("#brandTitle");
+    if (t && D.meta.title) { t.textContent = D.meta.title; document.title = D.meta.title; $(".brand").setAttribute("aria-label", D.meta.title + ": back to the chart"); }
+    initFilters(); initSearch(); initHelp(); renderKey(); renderRegionKey(); renderPlanKey(); updateCounts();
+    WORLD = layoutWorld();
+    const S0 = buildSeeds(WORLD.cities, null);
+    WORLD.labels = computeLabels(S0);
+    WORLD.eggs = chooseEggs(S0, WORLD.labels);
+    WORLD.S = WORLD.eggs.isle ? buildSeeds(WORLD.cities, WORLD.eggs.isle) : S0;
+    WORLD.fields = fieldsFor(WORLD.S, 0, 0, 0.5, MW / 2, MH / 2);
+    buildMasks();
+    paintWorld();
+    initWorldEvents(); initRegionEvents();
+    if (window.matchMedia) { const mq = window.matchMedia("(prefers-color-scheme: dark)"); if (mq.addEventListener) mq.addEventListener("change", repaint); else if (mq.addListener) mq.addListener(repaint); }
+    new MutationObserver(repaint).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class"] });
+    if (window.ResizeObserver) {
+      new ResizeObserver(() => drawTerrain()).observe($("#stage"));
+      new ResizeObserver(() => { if (current.view === "region" && current.ws) blit($("#rterrain"), $("#rstage"), regionFor(current.ws).off); }).observe($("#rstage"));
+    }
+    let rsz = 0;
+    window.addEventListener("resize", () => { clearTimeout(rsz); rsz = setTimeout(fitPlan, 120); });
+    window.addEventListener("hashchange", route);
+    route();
+  }
+  const loads = document.fonts && document.fonts.load ? Promise.all(['600 17px "Spectral SC"', 'italic 400 15px "Spectral"', '600 20px "Spectral"', '600 14px "Atkinson Hyperlegible Next"', '400 12px "Atkinson Hyperlegible Mono"'].map(f => document.fonts.load(f).catch(() => null))) : Promise.resolve();
+  Promise.race([loads, new Promise(r => setTimeout(r, 1500))]).then(boot, boot);
+})();
+</script>

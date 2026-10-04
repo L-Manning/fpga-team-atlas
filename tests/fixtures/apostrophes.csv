@@ -1,0 +1,5 @@
+ID,Task,Area,Workstream,Owner,Notes
+CH-01,Team charter,Team Charter,Ways of Working,Lead,Agree the 'why' and the 'how' of the team
+CH-02,Definition of done,Team Charter,Ways of Working,Avery,What 'done' means for a 'template' or a 'guide'
+CI-01,"Runner, licences and tools",CI Pipelines,Tooling,Frankie,Needs the 'golden' image
+CI-02,Lint on merge,CI Pipelines,Tooling,Blake,Use the 'strict' rule set

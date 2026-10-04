@@ -1,0 +1,15 @@
+filters:
+  and:
+    - file.inFolder("roadmap/requests")
+views:
+  - type: table
+    name: Requests
+    groupBy:
+      property: note.status
+      direction: DESC
+    order:
+      - file.name
+      - note.raised_by
+      - note.raised
+      - note.plus_ones
+      - note.mapped_to

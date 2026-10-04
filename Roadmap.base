@@ -1,0 +1,35 @@
+filters:
+  and:
+    - file.inFolder("roadmap/tasks")
+views:
+  - type: table
+    name: All tasks by area
+    groupBy:
+      property: note.parent
+      direction: ASC
+    order:
+      - file.name
+      - note.status
+      - note.owner
+      - note.milestone
+      - note.kind
+  - type: table
+    name: Under way
+    filters:
+      or:
+        - 'status == "in-progress"'
+        - 'status == "review"'
+    order:
+      - file.name
+      - note.status
+      - note.owner
+      - note.milestone
+  - type: cards
+    name: By owner
+    groupBy:
+      property: note.owner
+      direction: ASC
+    order:
+      - file.name
+      - note.status
+      - note.milestone
