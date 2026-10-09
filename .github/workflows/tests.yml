@@ -3,7 +3,14 @@ name: tests
 on:
   push:
   pull_request:
+permissions:
+  contents: read                    # the jobs only read the repository
 jobs:
+  content-guard:                    # this repository is public: nothing from work (see CONTRIBUTING.md)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tests/content_guard.py
   unit:
     runs-on: ubuntu-latest
     strategy:

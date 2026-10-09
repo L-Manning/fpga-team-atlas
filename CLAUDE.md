@@ -12,6 +12,8 @@ A roadmap kit for an FPGA team in a UK aerospace and defence company. The team w
 
 **This repository holds the kit and a placeholder example roadmap only.** Never add a real roadmap, real names, programme details or anything from work. The example people are Avery, Blake, Casey and so on.
 
+**The repository is public, so anything pushed is published.** `tests/content_guard.py` looks for work content: names that aren't placeholders, markings, e-mail addresses, internal hosts and links, and spreadsheets, documents, images or design files outside `tests/fixtures/`. The pre-commit hook in `.githooks/` runs it on every commit. Turn the hook on at the start of a session with `git config core.hooksPath .githooks`. If the guard finds anything, stop and tell the user. Never commit with `--no-verify`, and never import a real spreadsheet here.
+
 ## Layout
 
 | Path | What |
@@ -24,8 +26,14 @@ A roadmap kit for an FPGA team in a UK aerospace and defence company. The team w
 | `tools/import_roadmap.py` | Spreadsheet (.xlsx/.xlsm/.csv) → notes, offline. It reads xlsx with zipfile and ElementTree |
 | `tools/roadmap_template.xlsx` | The sheet layout the importer likes best |
 | `tools/fonts/` | woff2 fonts (OFL) that are embedded in the page |
-| `tests/` | Unit tests (stdlib `unittest`) with spreadsheet fixtures, and `page_smoke.py` (Playwright) |
+| `tests/` | Unit tests (stdlib `unittest`) with spreadsheet fixtures, `page_smoke.py` (Playwright), and `content_guard.py` (keeps work content out of this public repository) |
+| `.githooks/pre-commit` | Runs the content guard on what is staged |
 | `README.md` | The user guide. Keep it in step with any change people will notice |
+| `CONTRIBUTING.md` | How a change gets in: the git workflow, the definition of done, releases |
+| `REVIEW.md` | What a reviewer checks, sorted into blocking, should fix and nits |
+| `.claude/agents/` | Helper agents: `kit-reviewer` (reviews a branch against REVIEW.md) and `page-checker` (browser checks and screenshots) |
+| `.claude/skills/steward/` | The workflow for commits, pull requests, review comments and CI |
+| `.gitattributes` | Leaves the development-only files above out of `git archive` bundles for the work network |
 
 ## Commands
 
@@ -34,6 +42,7 @@ python tools/build_atlas.py --check                 # check the notes
 python tools/build_atlas.py                         # build public/index.html
 python -m unittest discover -s tests -t tests       # unit tests (fast, no dependencies)
 python tests/page_smoke.py --shots                  # browser checks + screenshots in tests/shots/
+python tests/content_guard.py                       # nothing from work (--staged: only what is staged)
 python tools/import_roadmap.py tests/fixtures/columns.xlsx --dry-run
 ```
 
@@ -55,6 +64,8 @@ python tools/import_roadmap.py tests/fixtures/columns.xlsx --dry-run
 
 ## Before finishing a change
 
-1. Run the unit tests, and check that `build_atlas.py --check` has no errors on the example roadmap.
-2. If you changed `atlas_template.html`, run `tests/page_smoke.py --shots` and look at the screenshots in light, dark and phone widths.
-3. Update `README.md` for anything users will notice, and `CLAUDE.md` if the structure or conventions changed.
+1. Run the unit tests (on Python 3.8 too if `uv` is available), and check that `build_atlas.py --check` has no errors on the example roadmap.
+2. If you changed `atlas_template.html`, run `tests/page_smoke.py --shots` and look at the screenshots in light, dark and phone widths. The `page-checker` agent can do this.
+3. Run `tests/content_guard.py`.
+4. Update `README.md` for anything users will notice, and `CLAUDE.md` if the structure or conventions changed.
+5. Commit and open pull requests as `CONTRIBUTING.md` and the `steward` skill describe. The `kit-reviewer` agent can review the branch first.

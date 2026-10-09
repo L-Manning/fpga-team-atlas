@@ -1,0 +1,11 @@
+# Files that are only for developing the kit. `git archive` and GitHub's source
+# downloads leave them out, so a release bundle for the work network holds the
+# kit alone. See CONTRIBUTING.md, "Releases".
+/.github export-ignore
+/.githooks export-ignore
+/.claude export-ignore
+/tests export-ignore
+/CLAUDE.md export-ignore
+/CONTRIBUTING.md export-ignore
+/REVIEW.md export-ignore
+/.gitattributes export-ignore

@@ -1,0 +1,12 @@
+#!/bin/sh
+# Stops a commit that would put work content in this public repository.
+# Turn it on once in each clone:   git config core.hooksPath .githooks
+# For a false alarm, extend the lists in tests/content_guard.py in the same commit
+# rather than skipping the hook with --no-verify. See CONTRIBUTING.md.
+for py in python3 python "py -3"; do
+  if $py -c "import sys; sys.exit(sys.version_info < (3, 8))" >/dev/null 2>&1; then
+    exec $py tests/content_guard.py --staged
+  fi
+done
+echo "pre-commit: Python 3.8 or later wasn't found, so the content guard couldn't run." >&2
+exit 1
