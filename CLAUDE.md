@@ -6,7 +6,7 @@ A roadmap kit for an FPGA team in a UK aerospace and defence company. The team w
 
 - **Notes are the source of truth.** The roadmap is a set of Markdown notes in an Obsidian vault (this folder): workstreams, areas, tasks, milestones and requests.
 - **One page is built from them.** `tools/build_atlas.py` reads the notes, checks them and writes a single self-contained HTML page. The page is an Admiralty-style chart with four zoom levels (chart → territory → walled town → task), plus Progress, List, Notice board and Checks views.
-- **Nothing on the map is placed by hand.** Layout is generated from the notes and is deterministic: it uses random number generators seeded from IDs, so the chart doesn't jump between builds.
+- **Nothing on the map is placed by hand.** Layout is generated from the notes and is deterministic: it uses random number generators seeded from IDs, so the chart doesn't jump between builds. With `SOURCE_DATE_EPOCH` set, the whole page is the same byte for byte.
 - **It must work offline at work.** There are no network requests at build or view time and no Obsidian community plugins, because plugins need a long approval and must run offline. The Python is 3.8+ and uses only the standard library. Fonts are embedded.
 - **GitLab CI does the checking and publishing at work.** `.gitlab-ci.yml` runs `--check` on merge requests and publishes the page through Pages.
 

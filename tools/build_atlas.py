@@ -658,6 +658,21 @@ def git_info(root: Path) -> dict:
     return info
 
 
+def build_time() -> str:
+    """When the page says it was drawn. SOURCE_DATE_EPOCH (seconds since 1970, UTC) fixes it, so two builds of
+    the same notes are identical byte for byte: https://reproducible-builds.org/specs/source-date-epoch/"""
+    epoch = os.environ.get("SOURCE_DATE_EPOCH", "").strip()
+    if not epoch:
+        return dt.datetime.now().replace(microsecond=0).isoformat()
+    if not re.fullmatch(r"[0-9]+", epoch):
+        raise ValueError(f"SOURCE_DATE_EPOCH is '{epoch}'. Set it to a whole number of seconds since 1970, "
+                         "such as the commit time from: git log -1 --format=%ct")
+    try:
+        return dt.datetime.fromtimestamp(int(epoch), dt.timezone.utc).replace(tzinfo=None).isoformat()
+    except (OverflowError, OSError, ValueError):
+        raise ValueError(f"SOURCE_DATE_EPOCH {epoch} is too large to be a date") from None
+
+
 def font_css(font_dir: Path) -> str:
     rules = []
     for family, weight, style, filename in FONT_FACES:
@@ -723,9 +738,13 @@ def main(argv=None) -> int:
     if args.check:
         return 1 if failed else 0
 
+    try:
+        generated = build_time()
+    except ValueError as err:
+        print(f"error: {err}", file=sys.stderr)
+        return 2
     info = git_info(root)
-    meta = {"title": args.title, "vault": args.vault_name or root.name,
-            "generated": dt.datetime.now().replace(microsecond=0).isoformat(),
+    meta = {"title": args.title, "vault": args.vault_name or root.name, "generated": generated,
             "commit": info["commit"], "ref": info["ref"], "repo_url": info["repo_url"], "counts": counts,
             "estimate_unit": args.estimate_unit}
     data = dict(meta=meta, issues=chk.issues, **model)

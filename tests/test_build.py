@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import unittest
+from unittest import mock
 
 from helpers import KitTestCase, atlas
 
@@ -58,6 +60,18 @@ class ExampleRoadmap(KitTestCase):
         data = self.page_data(page)
         self.assertIn(nasty, next(t for t in data["tasks"] if t["id"] == "CI-03")["description"])
         self.assertEqual(json.loads(js.read_text(encoding="utf-8"))["tasks"], data["tasks"])
+
+    def test_source_date_epoch_makes_builds_identical(self):
+        a, b = self.kit / "public" / "a.html", self.kit / "public" / "b.html"
+        with mock.patch.dict(os.environ, {"SOURCE_DATE_EPOCH": "1700000000"}):
+            codes = (self.run_build("--out", str(a))[0], self.run_build("--out", str(b))[0])
+        self.assertEqual(codes, (0, 0))
+        self.assertEqual(a.read_bytes(), b.read_bytes())
+        self.assertEqual(self.page_data(a.read_text(encoding="utf-8"))["meta"]["generated"], "2023-11-14T22:13:20")
+        with mock.patch.dict(os.environ, {"SOURCE_DATE_EPOCH": "yesterday"}):
+            code, log = self.run_build("--out", str(a))
+        self.assertEqual(code, 2)
+        self.assertIn("SOURCE_DATE_EPOCH", log)
 
 
 class Checks(KitTestCase):

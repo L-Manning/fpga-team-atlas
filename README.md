@@ -157,6 +157,13 @@ python tools/build_atlas.py [--check] [--strict] [--out FILE] [--vault-name NAME
 
 In CI the page also links each task to its file in GitLab and shows the commit it was built from.
 
+Two builds of the same notes differ only in the time the page says it was drawn. To make them identical byte for byte, for example to check that a published page matches a tag, set `SOURCE_DATE_EPOCH` to the commit time first. The page then shows that time, in UTC.
+
+```
+SOURCE_DATE_EPOCH=$(git log -1 --format=%ct) python tools/build_atlas.py                      # Linux, Git Bash
+$env:SOURCE_DATE_EPOCH = git log -1 --format=%ct; python tools/build_atlas.py                 # Windows PowerShell
+```
+
 Each workstream gets its own colour, in the order the notes are read. To pin a workstream to one side of the map, add `map_hint: west` (or `north`, `south`, `east`, `centre`, `northwest`, `northeast`, `southwest`, `southeast`) to its note. Otherwise workstreams are placed west to east by when their work unlocks.
 
 ## Obsidian set-up
