@@ -43,6 +43,22 @@ class ExampleRoadmap(KitTestCase):
         self.assertEqual(code, 0, log)
         self.assertFalse((self.kit / "public" / "index.html").exists())
 
+    def page_data(self, page: str) -> dict:
+        return json.loads(re.search(r'<script id="atlas-data" type="application/json">(.*?)</script>', page, re.S).group(1))
+
+    def test_note_text_cannot_end_the_data_script(self):
+        nasty = 'Close </script><script>alert("x")</script> & <b>bold</b>'
+        task = self.kit / "roadmap" / "tasks" / "CI-03 Nightly regression.md"
+        write(task, task.read_text(encoding="utf-8").replace("Run the full", nasty + " Run the full"))
+        out, js = self.kit / "public" / "index.html", self.kit / "public" / "atlas.json"
+        code, log = self.run_build("--out", str(out), "--json", str(js))
+        self.assertEqual(code, 0, log)
+        page = out.read_text(encoding="utf-8")
+        self.assertNotIn("<script>alert", page)
+        data = self.page_data(page)
+        self.assertIn(nasty, next(t for t in data["tasks"] if t["id"] == "CI-03")["description"])
+        self.assertEqual(json.loads(js.read_text(encoding="utf-8"))["tasks"], data["tasks"])
+
 
 class Checks(KitTestCase):
     def codes(self, **kw):
@@ -80,6 +96,83 @@ class Checks(KitTestCase):
     def test_strict_fails_on_warnings(self):
         code, _log = self.run_build("--check", "--strict")
         self.assertEqual(code, 1 if self.check().count("warning") else 0)
+
+    def test_warnings_and_notes(self):
+        road = self.kit / "roadmap"
+        write(road / "workstreams" / "Empty.md", "---\ntype: workstream\nid: EMPTY\nmap_hint: up\n---\n")      # W108, I202
+        write(road / "tasks" / "W-1.md", "---\ntype: task\nid: W-1\nparent: CI\nstatus: in-progress\n---\n")    # W101, W102
+        write(road / "tasks" / "W-2.md", "---\ntype: task\nid: W-2\nparent: CI\nstatus: done\nkind: template\n"
+                                         "depends_on: [CI-03]\n---\n- [ ] Still open\n")                       # W103, W104, W106
+        write(road / "tasks" / "W-3.md", "---\ntype: task\nid: W-3\nparent: CI\nstatus: review\nowner: Avery\n"
+                                         "deliverable: library/guides/not-written-yet.md\n---\n- [x] Draft\n")  # W105
+        write(road / "requests" / "REQ-90.md", "---\ntype: request\nid: REQ-90\nstatus: mapped\n---\n")         # W107
+        codes = self.codes()
+        expected = {"W101", "W102", "W103", "W104", "W105", "W106", "W107", "W108", "I201", "I202"}
+        self.assertTrue(expected <= codes, sorted(expected - codes))
+
+    def test_unreadable_notes_and_missing_ids(self):
+        tasks = self.kit / "roadmap" / "tasks"
+        write(tasks / "No id.md", "---\ntype: task\nparent: CI\nstatus: planned\n---\n")                      # E001
+        write(tasks / "Odd type.md", "---\ntype: epic\nid: EP-1\n---\n")                                       # E003
+        write(tasks / "Broken.md", "---\ntype: task\nthis line has no colon\n---\n")                          # E010
+        (tasks / "Latin-1.md").write_bytes("---\ntype: task\nid: L-1\ntitle: Café\n---\n".encode("latin-1"))  # E010
+        issues = self.check().issues
+        codes = [i["code"] for i in issues]
+        self.assertTrue({"E001", "E003"} <= set(codes), codes)
+        self.assertEqual(codes.count("E010"), 2, issues)
+        self.assertTrue(all(i["path"].startswith("roadmap/") for i in issues))
+
+    def test_a_reference_to_the_wrong_kind_of_note_says_what_it_is(self):
+        road = self.kit / "roadmap"
+        write(road / "tasks" / "M-1.md", "---\ntype: task\nid: M-1\nparent: CI\nstatus: planned\nmilestone: CI-01\n---\n")
+        write(road / "requests" / "REQ-91.md", "---\ntype: request\nid: REQ-91\nstatus: mapped\nmapped_to: CI\n---\n")
+        messages = {i["code"]: i["message"] for i in self.check().issues if i["code"] in ("E008", "E009")}
+        self.assertEqual(messages, {"E008": "milestone CI-01 is a task, not a milestone",
+                                    "E009": "mapped_to CI is an area, not a task"})
+
+
+class Deliverables(KitTestCase):
+    def resolve(self, value):
+        return atlas.resolve_deliverable(value, self.kit / "roadmap" / "tasks" / "X-1 Example.md", self.kit)
+
+    def test_files_that_exist(self):
+        write(self.kit / "library" / "guides" / "Spec [draft] v2.md", "Placeholder.\n")
+        charter = "library/guides/team-charter.md"
+        for value, path in {
+            charter: charter,
+            "team-charter": charter,                                    # a bare name is found anywhere in the vault
+            "[[team-charter]]": charter,
+            "[The charter](library/guides/team-charter.md)": charter,
+            "../../library/guides/team-charter.md": charter,            # relative to the note
+            "library\\guides\\team-charter.md": charter,                # written on Windows: the same on Linux CI
+            "Spec [draft] v2": "library/guides/Spec [draft] v2.md",     # brackets are just characters
+        }.items():
+            d = self.resolve(value)
+            self.assertEqual((d.get("path"), d.get("exists")), (path, True), value)
+
+    def test_files_that_dont_exist_yet(self):
+        for value, path in {
+            "*": "*",                                                   # not a pattern: it matches no file
+            "./library/not-yet.md": "library/not-yet.md",
+            "../library/not-yet.md": "roadmap/library/not-yet.md",      # where that is, from the note's folder
+            ".config/not-yet.md": ".config/not-yet.md",
+        }.items():
+            d = self.resolve(value)
+            self.assertEqual((d.get("path"), d.get("exists")), (path, False), value)
+
+    def test_links_and_text(self):
+        self.assertEqual(self.resolve("https://example.org/guide")["url"], "https://example.org/guide")
+        text = "Document control: FPGA coding standard, issue 2"
+        self.assertEqual(self.resolve(text), {"label": text, "text": text})
+
+
+class Body(unittest.TestCase):
+    def test_checkboxes_in_code_blocks_are_only_examples(self):
+        body = ("Intro.\n\n```markdown\n- [ ] In a backtick block\n~~~\n- [ ] Still in it: a tilde line doesn't close it\n"
+                "```\n~~~~\n- [ ] In a tilde block\n~~~\n- [ ] Still in it: a shorter fence doesn't close it\n~~~~\n"
+                "- [x] Real one\n- [/] Another\n")
+        _desc, subs = atlas.split_body(body)
+        self.assertEqual([(s["text"], s["state"]) for s in subs], [("Real one", "done"), ("Another", "doing")])
 
 
 class Frontmatter(unittest.TestCase):

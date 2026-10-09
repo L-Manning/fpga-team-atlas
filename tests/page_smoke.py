@@ -89,8 +89,10 @@ def make_large_roadmap(root: Path):
                       "milestone": rng.choice(["M1", "M2", "M3"]), "estimate": rng.choice([1, 2, 3, 5])}
                 if deps:
                     fm["depends_on"] = "[" + ", ".join(deps) + "]"
-                write("tasks", f"{tid} Placeholder task {tid} with a longer title", fm,
-                      "Placeholder.\n\n## Subtasks\n- [x] One\n- [ ] Two\n" if status == "in-progress" else "Placeholder.")
+                body = "Placeholder.\n\n## Subtasks\n- [x] One\n- [ ] Two\n" if status == "in-progress" else "Placeholder."
+                if tid == "WOW1-01":    # a ~~~ code block: its checkbox is only an example, and a ``` line doesn't end it
+                    body += "\n\n~~~\n- [ ] An example, not a subtask\n```\nstill code\n~~~\n"
+                write("tasks", f"{tid} Placeholder task {tid} with a longer title", fm, body)
                 prev.append(tid)
                 done.append(tid)
 
@@ -150,6 +152,12 @@ async def check_page(pw, name: str, page_file: Path, shots: bool) -> list:
     await pg.wait_for_timeout(500)
     if await pg.evaluate("() => location.hash") != f"#task.{first}":
         problems.append(f"{name}: Esc in the search box also left the task")
+    # a code block fenced with ~~~ is drawn as one block, ``` line and all
+    if any(t["id"] == "WOW1-01" for t in data["tasks"]):
+        await visit(pg, "#task.WOW1-01", 900)
+        blocks = await pg.evaluate("() => Array.from(document.querySelectorAll('#panel .md pre code')).map(c => c.textContent)")
+        if not any("An example" in b and "still code" in b for b in blocks):
+            problems.append(f"{name}: a ~~~ code block in WOW1-01 wasn't drawn as one block: {blocks}")
     if shots:
         for h in ("#map", f"#area.{data['areas'][0]['id']}", f"#task.{first}", "#progress"):
             await visit(pg, h, 1000)

@@ -21,6 +21,7 @@ import datetime as dt
 import html
 import json
 import os
+import posixpath
 import re
 import subprocess
 import sys
@@ -210,17 +211,21 @@ def split_note(text: str):
 # --------------------------------------------------------------------------
 CHECK_RE = re.compile(r"^\s*[-*+]\s+\[([ xX/\-])\]\s+(.*\S)\s*$")
 HEADING_RE = re.compile(r"^#{1,6}\s")
+FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})")
 SUBTASK_STATE = {"x": "done", "/": "doing", "-": "dropped"}
 
 
 def split_body(body: str):
     body = re.sub(r"<!--.*?-->", "", body, flags=re.S)      # HTML comments
     body = re.sub(r"%%.*?%%", "", body, flags=re.S)         # Obsidian comments
-    subtasks, kept, in_code = [], [], False
+    subtasks, kept, fence = [], [], ""
     for line in body.splitlines():
-        if line.strip().startswith("```"):
-            in_code = not in_code
-        m = None if in_code else CHECK_RE.match(line)
+        f = FENCE_RE.match(line)
+        if f and not fence:
+            fence = f.group(1)              # a code block opens: checkboxes inside it are only examples
+        elif f and f.group(1)[0] == fence[0] and len(f.group(1)) >= len(fence):
+            fence = ""                      # closed by the same kind of fence, at least as long
+        m = None if fence else CHECK_RE.match(line)
         if m:
             subtasks.append({"text": m.group(2), "state": SUBTASK_STATE.get(m.group(1).lower(), "todo")})
         else:
@@ -245,7 +250,7 @@ def summary_of(desc: str, limit: int = 240) -> str:
             if para:
                 break
             continue
-        if HEADING_RE.match(s) or s.startswith(">") or s.startswith("```") or s.startswith("|"):
+        if HEADING_RE.match(s) or s.startswith((">", "```", "~~~", "|")):
             if para:
                 break
             continue
@@ -381,6 +386,21 @@ def find_cycles(graph: dict) -> list:
     return cycles
 
 
+def find_named(root: Path, name: str):
+    """Path (from root) of the file called `name` anywhere under root, outside dot-folders.
+
+    Names are compared exactly but for case, as on the Windows PCs the notes are edited on, so a check
+    gives the same answer there and on Linux CI. Brackets and stars in a name are just characters."""
+    want = name.lower()
+    if not want or want.startswith("."):
+        return None
+    hits = []
+    for top, dirs, files in os.walk(root):
+        dirs[:] = [d for d in dirs if not d.startswith(".")]
+        hits += [(Path(top) / f).relative_to(root).as_posix() for f in files if f.lower() == want]
+    return min(hits, key=lambda p: p.split("/")) if hits else None
+
+
 def resolve_deliverable(value, note_path: Path, root: Path):
     s = as_str(value)
     if not s:
@@ -400,6 +420,7 @@ def resolve_deliverable(value, note_path: Path, root: Path):
         return {"label": label, "text": target}
     if re.match(r"^[^/\\]+?:\s", target):          # e.g. "Document control: FPGA coding standard"
         return {"label": label, "text": target}
+    target = target.replace("\\", "/")              # a Windows-style path reads the same on Linux CI
     candidates = [root / target, note_path.parent / target]
     if not target.lower().endswith(".md"):
         candidates += [root / (target + ".md"), note_path.parent / (target + ".md")]
@@ -411,11 +432,21 @@ def resolve_deliverable(value, note_path: Path, root: Path):
             continue
     base = Path(target).name
     if base and "/" not in target:              # Obsidian-style bare name: find it anywhere in the vault
-        name = base if base.lower().endswith(".md") else base + ".md"
-        for c in sorted(root.rglob(name)):
-            if not any(p.startswith(".") for p in c.relative_to(root).parts):
-                return {"label": label, "path": c.relative_to(root).as_posix(), "exists": True}
-    return {"label": label, "path": target.lstrip("./"), "exists": False}
+        found = find_named(root, base if base.lower().endswith(".md") else base + ".md")
+        if found:
+            return {"label": label, "path": found, "exists": True}
+    shown = target
+    while shown.startswith("./"):
+        shown = shown[2:]
+    if shown.startswith("../"):                     # relative to the note, so say where that is in the repository
+        try:
+            here = note_path.parent.resolve().relative_to(root.resolve()).as_posix()
+            joined = posixpath.normpath(posixpath.join(here, shown))
+            if joined != ".." and not joined.startswith("../"):
+                shown = joined
+        except ValueError:
+            pass
+    return {"label": label, "path": shown, "exists": False}
 
 
 def unit_ok(word: str, unit: str) -> bool:
@@ -512,7 +543,8 @@ def build_model(root: Path, roadmap: Path, chk: Checker, estimate_unit: str = "d
 
             ms = resolve(as_str(fm.get("milestone"))) if fm.get("milestone") else ""
             if ms and kind_of(ms) != "milestone":
-                chk.add("error", "E008", rel, nid, f"milestone {ms} doesn't exist")
+                what = "doesn't exist" if ms not in nodes else f"is {a_kind(ms)}, not a milestone"
+                chk.add("error", "E008", rel, nid, f"milestone {ms} {what}")
                 ms = ""
             rec["milestone"] = ms
 
@@ -559,7 +591,8 @@ def build_model(root: Path, roadmap: Path, chk: Checker, estimate_unit: str = "d
             rec["plus_ones"] = as_list(fm.get("plus_ones"))
             mapped = resolve(as_str(fm.get("mapped_to"))) if fm.get("mapped_to") else ""
             if mapped and kind_of(mapped) != "task":
-                chk.add("error", "E009", rel, nid, f"mapped_to {mapped} isn't a task")
+                what = "doesn't exist" if mapped not in nodes else f"is {a_kind(mapped)}, not a task"
+                chk.add("error", "E009", rel, nid, f"mapped_to {mapped} {what}")
                 mapped = ""
             if status == "mapped" and not mapped:
                 chk.add("warning", "W107", rel, nid, "is marked mapped but has no mapped_to task")

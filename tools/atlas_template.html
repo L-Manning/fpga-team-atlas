@@ -729,13 +729,14 @@ table.tasks{border-collapse:separate;border-spacing:0;width:100%;min-width:1180p
   }
   function md(src, base) {
     if (!src) return "";
-    let out = "", list = null, para = [], code = null;
+    let out = "", list = null, para = [], code = null, fence = "";
     const flush = () => { if (para.length) { out += "<p>" + inline(para.join(" "), base) + "</p>"; para = []; } };
     const close = () => { if (list) { out += "</" + list + ">"; list = null; } };
     src.replace(/\r/g, "").split("\n").forEach(raw => {
-      const line = raw.replace(/\s+$/, "");
-      if (code !== null) { if (/^\s*```/.test(line)) { out += "<pre><code>" + esc(code.join("\n")) + "</code></pre>"; code = null; } else code.push(raw); return; }
-      if (/^\s*```/.test(line)) { flush(); close(); code = []; return; }
+      const line = raw.replace(/\s+$/, ""), f = /^\s*(`{3,}|~{3,})/.exec(line);
+      // a code block ends at the same kind of fence, at least as long as the one that opened it
+      if (code !== null) { if (f && f[1][0] === fence[0] && f[1].length >= fence.length) { out += "<pre><code>" + esc(code.join("\n")) + "</code></pre>"; code = null; } else code.push(raw); return; }
+      if (f) { flush(); close(); code = []; fence = f[1]; return; }
       let m;
       if (!line.trim()) { flush(); close(); return; }
       if ((m = /^(#{1,6})\s+(.*)$/.exec(line))) { flush(); close(); const l = Math.min(6, m[1].length + 2); out += `<h${l}>${inline(m[2], base)}</h${l}>`; return; }
